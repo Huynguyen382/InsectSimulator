@@ -29,7 +29,7 @@ module.exports = {
   ASSIST_XP: 45,             // XP awarded to teammates who assisted in the kill
   EAT_XP: 20,
   RESPAWN_TIME: 5.0,
-  INITIAL_AMMO: 0,           // Starts with 0 ammo - MUST EAT TO GET AMMO!
+  INITIAL_AMMO: 20,          // Khởi đầu và hồi sinh có đầy đủ 20 viên đạn sẵn sàng chiến đấu
   FIRE_RATE_COOLDOWN: 0.18,  // Minimum seconds between shots (Server-side anti-spam)
   ASSIST_TIMEOUT_SEC: 8.0,   // Damage within last 8s qualifies for an assist
   OUT_OF_COMBAT_REGEN_DELAY: 5.0, // Seconds without taking damage to start healing

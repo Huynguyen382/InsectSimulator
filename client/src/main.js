@@ -99,7 +99,7 @@ class Game {
       roll: 0,
       speed: 14.5,
       scale: 1.0,
-      ammo: 0,       // Starts with 0 ammo!
+      ammo: 20,       // Khởi đầu với đầy đủ 20 viên đạn
       maxAmmo: 20,
       hp: 100,
       maxHp: 100,
@@ -110,6 +110,8 @@ class Game {
       timesEaten: 0,
       initialized: false
     };
+
+    this.lastShotTime = 0;
 
     // Visual Entities Maps & Pools
     this.playerVisuals = new Map();
@@ -320,7 +322,22 @@ class Game {
       }
 
       this.localPlayer.initialized = false;
-      this.localPlayer.ammo = 0; // Starts match with 0 ammo!
+      this.localPlayer.ammo = 20; // Starts match with full 20 ammo
+      this.localPlayer.maxAmmo = 20;
+      this.lastShotTime = 0;
+      this.uiManager.updateHUD({
+        hp: 100,
+        maxHp: 100,
+        ammo: 20,
+        maxAmmo: 20,
+        level: 1,
+        xp: 0,
+        xpToNext: 100,
+        isDead: false,
+        isEating: false,
+        eatProgress: 0,
+        respawnTimer: 0
+      });
       this.inputController.mouse.yaw = this.myTeam === 0 ? 0 : Math.PI;
       this.inputController.mouse.pitch = 0;
       this.inputController.requestLock();
@@ -699,7 +716,8 @@ class Game {
     this.currentRoomId = null;
     this.isDead = false;
     this.localPlayer.initialized = false;
-    this.localPlayer.ammo = 0;
+    this.localPlayer.ammo = 20;
+    this.lastShotTime = 0;
 
     // Reset camera to cinematic lobby angle
     this.sceneManager.camera.position.set(0, 15, 30);
@@ -734,14 +752,23 @@ class Game {
     network.send({ type: 'GET_CUSTOM_ROOMS' });
   }
 
-  // --- SHOOTING LOGIC: STRICT AMMO VALIDATION (Cannot shoot without eating!) ---
+  // --- SHOOTING LOGIC: ACCURATE AMMO SYNCHRONIZATION ---
   handleShoot() {
     if (this.isDead || !this.currentRoomId || this.localPlayer.isFoodForm) return;
+
+    // Cooldown bắn kiểm tra đồng bộ chính xác với FIRE_RATE_COOLDOWN (0.18s) trên server
+    const nowSec = performance.now() / 1000;
+    const cooldown = 0.18;
+    if (nowSec - this.lastShotTime < cooldown) {
+      return; // Chưa hết hồi chiêu bắn -> không trừ đạn và không gửi spam gói tin
+    }
 
     // Strict validation: Ruồi không có đạn thì tuyệt đối không thể bắn!
     if (this.localPlayer.ammo <= 0) {
       return;
     }
+
+    this.lastShotTime = nowSec;
 
     // Deduct predicted local ammo
     this.localPlayer.ammo = Math.max(0, this.localPlayer.ammo - 1);
@@ -840,14 +867,24 @@ class Game {
         this.localPlayer.timesEaten = p.timesEaten;
         this.localPlayer.speed = p.speed || 14.5;
         this.localPlayer.scale = p.scale || 1.0;
-        this.localPlayer.ammo = p.ammo; // Server authoritative ammo
         this.localPlayer.maxAmmo = p.maxAmmo || 20;
+
+        // Reconcile ammo: ngăn chặn hiện tượng nhảy lùi số đạn khi độ trễ ping
+        const timeSinceLocalShot = (performance.now() / 1000) - this.lastShotTime;
+        if (p.ammo >= this.localPlayer.maxAmmo || p.ammo <= this.localPlayer.ammo || timeSinceLocalShot > 0.25) {
+          this.localPlayer.ammo = p.ammo;
+        }
+
         this.localPlayer.hp = p.hp;
         this.localPlayer.maxHp = p.maxHp;
         this.localPlayer.level = p.level;
         this.localPlayer.xp = p.xp;
 
-        this.uiManager.updateHUD(p);
+        this.uiManager.updateHUD({
+          ...p,
+          ammo: this.localPlayer.ammo,
+          maxAmmo: this.localPlayer.maxAmmo
+        });
         this.uiManager.updateFoodFormHUD(p);
 
         // Client-side prediction initialization & respawn reset
@@ -932,9 +969,9 @@ class Game {
     this.localPlayer.vy += (targetVy - this.localPlayer.vy) * smooth;
     this.localPlayer.vz += (targetVz - this.localPlayer.vz) * smooth;
 
-    // Aerodynamic banking roll: giảm biên độ nghiêng để giữ vững đường chân trời phẳng, chống chóng mặt
-    const targetRoll = -strafe * 0.12;
-    this.localPlayer.roll += (targetRoll - this.localPlayer.roll) * (1 - Math.exp(-14.0 * dt));
+    // Aerodynamic banking roll (D banks right, A banks left - cách di chuyển cũ)
+    const targetRoll = -strafe * 0.35;
+    this.localPlayer.roll += (targetRoll - this.localPlayer.roll) * (1 - Math.exp(-16.0 * dt));
 
     // Integrate position
     let newX = this.localPlayer.x + this.localPlayer.vx * dt;

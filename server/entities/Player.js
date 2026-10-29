@@ -29,7 +29,7 @@ class Player {
     this.speed = CONFIG.BASE_SPEED;
     this.damage = CONFIG.BASE_DAMAGE;
     this.scale = CONFIG.BASE_SCALE;
-    this.ammo = CONFIG.INITIAL_AMMO || 0; // Starts with 0 ammo - MUST EAT TO GET AMMO!
+    this.ammo = CONFIG.INITIAL_AMMO !== undefined ? CONFIG.INITIAL_AMMO : 20;
     this.maxAmmo = CONFIG.MAX_AMMO;
     this.eatTimeRequired = CONFIG.EAT_TIME_REQUIRED;
     this.eatBonusHeal = 0;
@@ -196,7 +196,7 @@ class Player {
     this.vy = 0;
     this.vz = 0;
     this.hp = this.maxHp;
-    this.ammo = CONFIG.INITIAL_AMMO || 0; // Respawn starts with 0 ammo - must eat to reload!
+    this.ammo = CONFIG.INITIAL_AMMO !== undefined ? CONFIG.INITIAL_AMMO : 20;
     this.isDead = false;
     this.respawnTimer = 0;
     this.isFoodForm = false;

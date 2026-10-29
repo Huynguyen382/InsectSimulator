@@ -1,8 +1,8 @@
 export const CLIENT_CONFIG = {
   MOUSE_SENSITIVITY: 0.0018,         // Smooth horizontal look (yaw)
-  MOUSE_PITCH_SENSITIVITY: 0.0014,   // Balanced vertical look (pitch)
-  INVERT_MOUSE_X: false,             // Di chuột tự nhiên 1:1 (di trái quay trái, di phải quay phải - chống chóng mặt)
-  INVERT_MOUSE_Y: false,             // Di chuột tự nhiên 1:1 (di lên nhìn lên, di xuống nhìn xuống)
+  MOUSE_PITCH_SENSITIVITY: 0.0015,   // Balanced vertical look (pitch)
+  INVERT_MOUSE_X: true,              // Giữ cách di chuyển cũ: Di chuột sang trái rẽ phải, di sang phải rẽ trái
+  INVERT_MOUSE_Y: true,              // Giữ cách di chuyển cũ: Đổi hướng di chuyển lên xuống của chuột
 
   // Camera Settings: Spacious, elevated 3rd-person view with anti-motion-sickness damping
   CAMERA_DISTANCE: 5.6,            // Kéo xa cự ly tầm nhìn thoáng đãng, giảm tốc độ trôi nền
@@ -21,7 +21,7 @@ export const CLIENT_CONFIG = {
   // Visual Polish
   WING_FLAP_SPEED: 0.06,
   POSITION_LERP_FACTOR: 0.35,
-  BANKING_SMOOTH_FACTOR: 0.10,     // Giảm lắc ngang giữ đường chân trời ổn định
+  BANKING_SMOOTH_FACTOR: 0.15,
 
   // Forest Flight Boundaries (Symmetrical & strictly within the 76m x 76m forest)
   BOUNDS: {

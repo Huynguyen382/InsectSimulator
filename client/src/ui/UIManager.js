@@ -164,20 +164,23 @@ export class UIManager {
     this.dom.hpText.innerText = `${Math.max(0, player.hp)} / ${player.maxHp}`;
     this.dom.hpBarFill.style.width = `${Math.max(0, (player.hp / player.maxHp) * 100)}%`;
 
-    // Ammo status
-    if (this.dom.ammoPills.children.length !== (player.maxAmmo || 20)) {
-      this.initAmmoPills(player.maxAmmo || 20);
+    // Ammo status: hiển thị chính xác đạn hiện tại / đạn tối đa
+    const currentAmmo = typeof player.ammo === 'number' && !isNaN(player.ammo) ? Math.max(0, Math.round(player.ammo)) : 0;
+    const maxAmmo = typeof player.maxAmmo === 'number' && !isNaN(player.maxAmmo) ? Math.max(1, Math.round(player.maxAmmo)) : 20;
+
+    if (this.dom.ammoPills.children.length !== maxAmmo) {
+      this.initAmmoPills(maxAmmo);
     }
-    this.dom.ammoText.innerText = `${player.ammo} / ${player.maxAmmo}`;
-    for (let i = 0; i < player.maxAmmo; i++) {
+    this.dom.ammoText.innerText = `${currentAmmo} / ${maxAmmo}`;
+    for (let i = 0; i < maxAmmo; i++) {
       const pill = document.getElementById(`ammo-pill-${i}`);
       if (pill) {
-        if (i < player.ammo) pill.classList.remove('empty');
+        if (i < currentAmmo) pill.classList.remove('empty');
         else pill.classList.add('empty');
       }
     }
 
-    if (player.ammo <= 0) {
+    if (currentAmmo <= 0) {
       this.dom.ammoWarning.classList.remove('hidden');
       if (this.dom.noAmmoReticle) this.dom.noAmmoReticle.classList.remove('hidden');
       if (this.dom.crosshair) this.dom.crosshair.classList.add('no-ammo');
