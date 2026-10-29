@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Insect Simulator 3v3 Arena</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Local Three.js + GLTFLoader (Zero CDN latency, 100% offline reliable) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/three/build/three.module.js",
+        "three/addons/": "/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Canvas 3D -->
+  <div id="game-container"></div>
+
+  <!-- FPS & Performance Stats Badge (Top Left) -->
+  <div id="perf-badge" class="perf-badge">
+    <span id="fps-counter">60</span> FPS
+    <span class="fps-target-pill" id="fps-target-btn" title="Nhấp để đổi giới hạn FPS (60 / 120 / 144 / MAX)">⚡ 144 FPS</span>
+    <button class="graphic-mode-pill" id="graphic-mode-btn" title="Nhấp hoặc bấm F8 để đổi chất lượng cánh rừng">🌿 Siêu mượt</button>
+    | Ping: <span id="ping-counter">--</span> ms | <span id="drawcall-counter">--</span> Calls
+  </div>
+
+  <!-- Lobby Screen -->
+  <div id="lobby-screen" class="overlay-screen active">
+    <div class="lobby-card">
+      <h1 class="game-title">🦟 INSECT SIMULATOR</h1>
+      <p class="subtitle">Đấu Trường Không Chiến Ruồi Rừng 3v3</p>
+      
+      <!-- Asset Preloader Bar -->
+      <div id="preload-box" class="preload-box">
+        <div class="preload-header">
+          <span id="preload-status">Đang nạp và tối ưu hóa khu rừng 3D...</span>
+          <span id="preload-percent">0%</span>
+        </div>
+        <div class="bar-container wide">
+          <div id="preload-bar-fill" class="bar-fill preload-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Forest Quality Selector -->
+      <div class="quality-card-box">
+        <div class="quality-label-row">
+          <span class="quality-title">🌳 ĐỒ HỌA & PHẠM VI CÁNH RỪNG:</span>
+          <span id="quality-desc-text" class="quality-desc">Bán kính 28.5m, tỉa 65% tán lá lặp, camera 55m, tối ưu 120-144+ FPS</span>
+        </div>
+        <div class="quality-btn-group" id="lobby-quality-group">
+          <button type="button" class="btn-quality active" data-quality="performance" title="Bán kính 28.5m, tỉa 65% lá lặp, nhẹ nhất, mượt nhất">
+            ⚡ Siêu mượt (Đề xuất)
+          </button>
+          <button type="button" class="btn-quality" data-quality="balanced" title="Bán kính 33.5m, tỉa 35% lá, đồ họa cân bằng">
+            ⚖️ Cân bằng
+          </button>
+          <button type="button" class="btn-quality" data-quality="high" title="Bán kính 36.5m, 100% chi tiết gốc cho GPU rời mạnh">
+            🌳 Đầy đủ
+          </button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="player-name">Tên phi công ruồi:</label>
+        <input type="text" id="player-name" placeholder="Ruồi Siêu Tốc" maxlength="15" value="FlyPilot">
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="lobby-actions">
+        <button id="btn-solo-practice" class="btn-primary btn-practice disabled" disabled>
+          🚀 CHƠI NGAY (GIẢ LẬP / VỚI BOT)
+        </button>
+        <button id="btn-find-match" class="btn-secondary disabled" disabled>
+          ⚔️ TÌM TRẬN 3V3 (NGẪU NHIÊN)
+        </button>
+      </div>
+
+      <!-- Custom Room Section (Chủ Động Tạo Phòng & Ghép Bạn Bè) -->
+      <div class="custom-room-card-box">
+        <div class="room-section-header">
+          <span class="room-section-title">🎮 PHÒNG TỰ TẠO (CHỦ ĐỘNG GHÉP BẠN BÈ)</span>
+        </div>
+        <div class="room-action-row">
+          <button id="btn-create-room" class="btn-room btn-create-room disabled" disabled>
+            ➕ TẠO PHÒNG MỚI
+          </button>
+          <div class="join-room-group">
+            <input type="text" id="input-room-code" placeholder="Nhập mã phòng (vd: 1234)" maxlength="8" />
+            <button id="btn-join-room" class="btn-room btn-join-room disabled" disabled>
+              🚪 VÀO PHÒNG
+            </button>
+          </div>
+        </div>
+        <div id="room-error-msg" class="room-error-msg hidden"></div>
+
+        <!-- Open Rooms Browser -->
+        <div id="open-rooms-container" class="open-rooms-container">
+          <div class="open-rooms-header">
+            <span>Danh sách phòng đang chờ:</span>
+            <button id="btn-refresh-rooms" class="btn-refresh-small" title="Làm mới">🔄</button>
+          </div>
+          <div id="open-rooms-list" class="open-rooms-list">
+            <span class="no-rooms-hint">Chưa có phòng nào. Hãy tạo phòng mới hoặc rủ bạn bè!</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="queue-status" class="queue-status hidden">
+        <div class="spinner"></div>
+        <span>Đang tìm trận... Vị trí hàng đợi: <b id="queue-pos">1</b> (Tự động lấp Bot sau 3s)</span>
+      </div>
+
+      <div class="instructions">
+        <h3>HƯỚNG DẪN CHIẾN ĐẤU & MỤC TIÊU:</h3>
+        <ul>
+          <li><b>🏰 Mục tiêu Cứ Điểm (1000 HP)</b>: Mỗi phe có 1 cứ điểm phát sáng. <b>Phá hủy cứ điểm đối thủ để chiến thắng ngay lập tức!</b> Hết giờ phe nào còn nhiều máu cứ điểm hơn sẽ thắng!</li>
+          <li><b>⌨️ Hỗ trợ Unikey / EVKey</b>: Thoải mái bật Telex/VNI khi chơi, hệ thống chống kẹt phím tự động bảo vệ WASD 100% mượt mà!</li>
+          <li><b>Cơ chế đạn</b>: Ruồi khởi đầu với <b>0 viên đạn</b>. BẮT BUỘC phải bay đến bãi thức ăn (💩) ăn no mới có 20 viên đạn để bắn!</li>
+          <li><b>Bãi thức ăn (💩)</b>: Bay lại gần cột sáng vàng trong 2s để nạp 20 viên đạn. Thức ăn sẽ <b>tự biến mất sau 22s</b> nếu không ai ăn, và hồi lại sau 12s.</li>
+          <li><b>WASD / Phím mũi tên</b>: Bay theo hướng nhìn 3D mượt mà không độ trễ</li>
+          <li><b>Space / Shift</b>: Bay vút lên tán cây / Hạ sát mặt đường</li>
+          <li><b>Chuột</b>: Chuột phải quay phải, chuột trái quay trái (Chuẩn TPS/FPS)</li>
+          <li><b>Chuột trái</b>: Bắn đạn tiêu hao (Đạn tự điều chỉnh hướng 45% về kẻ địch trong 10m)</li>
+          <li><b>Rào chắn</b>: Giới hạn khu rừng, ruồi không thể bay vượt ra khỏi bản đồ</li>
+          <li><b>Đồng đội</b>: Màu Xanh | <b>Kẻ địch</b>: Màu Đỏ (Tắt Friendly Fire)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Room Lobby Modal (Waiting Room) -->
+  <div id="custom-room-modal" class="overlay-screen hidden">
+    <div class="custom-room-modal-card">
+      <div class="modal-room-header">
+        <div class="room-title-group">
+          <h2>🦟 PHÒNG CHỜ CHIẾN ĐẤU 3V3</h2>
+          <span class="room-subtitle">Gửi mã phòng cho bạn bè để cùng vào một trận đấu!</span>
+        </div>
+        <div class="room-code-badge">
+          <span class="label">MÃ PHÒNG:</span>
+          <span id="display-room-code" class="code-number">----</span>
+          <button id="btn-copy-code" class="btn-copy" title="Sao chép mã phòng">📋 SAO CHÉP</button>
+        </div>
+      </div>
+
+      <!-- Teams Grid: Blue Team vs Red Team -->
+      <div class="teams-container">
+        <!-- Blue Team Column -->
+        <div class="team-column blue-column">
+          <div class="team-header-pill blue-pill">
+            <span>ĐỘI XANH</span>
+            <span class="count-tag"><span id="blue-count">0</span> / 3</span>
+          </div>
+          <div id="blue-roster" class="roster-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <div class="vs-divider">
+          <span>VS</span>
+        </div>
+
+        <!-- Red Team Column -->
+        <div class="team-column red-column">
+          <div class="team-header-pill red-pill">
+            <span>ĐỘI ĐỎ</span>
+            <span class="count-tag"><span id="red-count">0</span> / 3</span>
+          </div>
+          <div id="red-roster" class="roster-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <div class="room-bot-hint">
+        💡 <i>Nếu phòng chưa đủ 6 người, hệ thống sẽ tự động thêm Bot AI thông minh vào các vị trí còn trống để tạo trận đấu 3v3 cân bằng!</i>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="custom-room-actions">
+        <button id="btn-switch-team" class="btn-utility">🔄 ĐỔI ĐỘI</button>
+        <button id="btn-leave-room" class="btn-danger">🚪 RỜI PHÒNG</button>
+        <button id="btn-start-custom-match" class="btn-primary btn-start-custom hidden">
+          ⚔️ BẮT ĐẦU TRẬN ĐẤU
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD IN-GAME -->
+  <div id="game-hud" class="hud-layer hidden">
+    <!-- Boundary Warning Banner (Sleek Compact Top Pill) -->
+    <div id="boundary-warning" class="boundary-warning hidden">
+      ⚠️ RÀO CHẮN RỪNG ĐÊM - BẠN ĐANG Ở RÌA BẢN ĐỒ!
+    </div>
+
+    <!-- Center HUD Toast for Personal Tactical Alerts -->
+    <div id="hud-toast" class="hud-toast hidden"></div>
+
+    <!-- Unified Top Tactical Bar (Tích hợp Điểm số, Đồng hồ & Máu Cứ Điểm 2 Phe siêu gọn) -->
+    <div class="top-tactical-bar">
+      <!-- Blue Wing: Base HP & Team Score -->
+      <div class="base-wing blue-wing" id="base-card-blue" title="Cứ điểm phe Xanh">
+        <div class="wing-info">
+          <span class="wing-tag">🏰 CỨ ĐIỂM XANH</span>
+          <span class="wing-hp" id="base-blue-hp-text">1000 / 1000</span>
+        </div>
+        <div class="wing-track">
+          <div class="wing-fill blue-fill" id="base-blue-bar-fill" style="width: 100%;"></div>
+        </div>
+        <div class="wing-score blue-score" id="score-blue" title="Điểm hạ gục đội Xanh">0</div>
+      </div>
+
+      <!-- Center Node: Timer & Team Badge -->
+      <div class="tactical-center-node">
+        <div class="match-timer-val" id="match-timer">05:00</div>
+        <div class="objective-badge">
+          <span id="my-team-badge" class="team-badge">ĐANG TẢI</span>
+        </div>
+      </div>
+
+      <!-- Red Wing: Team Score & Base HP -->
+      <div class="base-wing red-wing" id="base-card-red" title="Cứ điểm phe Đỏ">
+        <div class="wing-score red-score" id="score-red" title="Điểm hạ gục đội Đỏ">0</div>
+        <div class="wing-info right-align">
+          <span class="wing-hp" id="base-red-hp-text">1000 / 1000</span>
+          <span class="wing-tag">CỨ ĐIỂM ĐỎ 🏰</span>
+        </div>
+        <div class="wing-track">
+          <div class="wing-fill red-fill" id="base-red-bar-fill" style="width: 100%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Food Form Survival Indicator (Khi bị tiêu diệt và hóa thành thức ăn) -->
+    <div id="food-form-hud" class="food-form-hud hidden">
+      <div class="food-form-top">
+        <span class="food-form-badge">💩 DẠNG THỨC ĂN (ĐANG TRỐN)</span>
+        <span class="food-form-tagline">Trốn trong 10 giây để hồi sinh! Đừng để bị đối thủ nạp đạn!</span>
+      </div>
+      <div class="food-form-timer-wrap">
+        <div class="food-form-timer-bar">
+          <div id="food-form-bar-fill" class="food-form-bar-fill" style="width: 100%;"></div>
+        </div>
+        <span id="food-form-timer-text" class="food-form-timer-text">10.0s</span>
+      </div>
+      <div class="food-form-lives-row">
+        <span class="lives-label">Số lần bị đối thủ nạp đạn:</span>
+        <div id="food-form-hearts" class="food-form-hearts">
+          <span class="heart active" id="heart-1">❤️</span>
+          <span class="heart active" id="heart-2">❤️</span>
+          <span class="heart active" id="heart-3">❤️</span>
+        </div>
+        <span id="food-form-eaten-counter" class="eaten-counter">0 / 3</span>
+      </div>
+    </div>
+
+    <!-- Kill Feed (Max 3 items, sleek & non-intrusive) -->
+    <div id="kill-feed" class="kill-feed"></div>
+
+    <!-- Crosshair with Aim Assist Indicator -->
+    <div id="crosshair" class="crosshair">
+      <div class="crosshair-dot"></div>
+      <div class="crosshair-ring"></div>
+      <div id="no-ammo-reticle" class="no-ammo-reticle hidden">0 ĐẠN</div>
+    </div>
+
+    <!-- 3D Target Lock Bracket (Projected on enemy in 3D space) -->
+    <div id="target-bracket" class="target-bracket hidden">
+      <div class="bracket-corners"></div>
+      <span id="target-distance" class="target-distance">24m</span>
+    </div>
+
+    <!-- Bottom Status Bars -->
+    <div class="bottom-hud">
+      <!-- Health Bar -->
+      <div class="hud-panel hp-panel">
+        <div class="panel-label">MÁU (HP): <span id="hp-text">100 / 100</span></div>
+        <div class="bar-container">
+          <div id="hp-bar-fill" class="bar-fill hp-fill" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Ammo & Eat indicator -->
+      <div class="hud-panel ammo-panel">
+        <div class="panel-label">ĐẠN: <span id="ammo-text">20 / 20</span></div>
+        <div id="ammo-pills" class="ammo-pills"></div>
+        <div id="ammo-warning" class="ammo-warning hidden">⚠️ HẾT ĐẠN! ĂN ĐỂ NẠP ĐẠN</div>
+        
+        <!-- Eating Progress -->
+        <div id="eat-container" class="eat-container hidden">
+          <div class="eat-label">🍽️ ĐANG ĂN NẠP ĐẠN...</div>
+          <div class="bar-container mini">
+            <div id="eat-bar-fill" class="bar-fill eat-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level & XP -->
+      <div class="hud-panel xp-panel">
+        <div class="panel-label">CẤP ĐỘ <b id="level-text">1</b> (<span id="xp-text">0 / 100 XP</span>)</div>
+        <div class="bar-container">
+          <div id="xp-bar-fill" class="bar-fill xp-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Radio / Tactical Emotes -->
+    <div class="tactical-radio-bar">
+      <button class="radio-btn" data-msg="Tập hợp lại!">🚩 Tập hợp</button>
+      <button class="radio-btn" data-msg="Cần tiếp đạn!">💩 Cần thức ăn</button>
+      <button class="radio-btn" data-msg="Tổng tấn công!">⚔️ Tấn công</button>
+      <button class="radio-btn" data-msg="Rút lui khẩn cấp!">🛡️ Rút lui</button>
+    </div>
+  </div>
+
+  <!-- Level-Up Upgrade Modal -->
+  <div id="levelup-modal" class="overlay-screen hidden">
+    <div class="modal-card">
+      <h2 class="levelup-title">✨ THĂNG CẤP ĐỘ! CHỌN 1 NÂNG CẤP:</h2>
+      <div id="upgrade-cards" class="upgrade-cards"></div>
+    </div>
+  </div>
+
+  <!-- Respawn Overlay -->
+  <div id="respawn-overlay" class="overlay-screen hidden">
+    <div class="death-card">
+      <h2 class="death-title" id="death-card-title">BẠN ĐÃ BỊ ĂN QUÁ 3 LẦN - BỊ TIÊU DIỆT!</h2>
+      <p class="death-desc" id="death-card-desc">Đối thủ đã lại gần nạp đạn quá 3 lần trước khi bạn kịp trốn thoát.</p>
+      <p class="respawn-countdown">Hồi sinh tại căn cứ sau: <span id="respawn-timer">5</span>s</p>
+    </div>
+  </div>
+
+  <!-- Match End / Game Over Overlay -->
+  <div id="gameover-modal" class="overlay-screen hidden">
+    <div class="gameover-card">
+      <div id="gameover-banner" class="gameover-banner victory">CHIẾN THẮNG!</div>
+      <div class="gameover-scores">
+        <span class="team-score-item blue"><span id="go-score-blue">0</span> ĐỘI XANH</span>
+        <span class="vs">vs</span>
+        <span class="team-score-item red"><span id="go-score-red">0</span> ĐỘI ĐỎ</span>
+      </div>
+
+      <!-- MVP Badge -->
+      <div id="go-mvp-badge" class="mvp-badge">
+        <span class="mvp-title">👑 MVP TRẬN ĐẤU:</span>
+        <span id="go-mvp-name" class="mvp-name">FlyPilot</span>
+      </div>
+
+      <!-- Scoreboard Table -->
+      <div class="table-container">
+        <table class="scoreboard-table">
+          <thead>
+            <tr>
+              <th>Phi Công</th>
+              <th>Đội</th>
+              <th>Hạ gục</th>
+              <th>Hỗ trợ</th>
+              <th>Sát thương</th>
+              <th>Thức ăn</th>
+              <th>Điểm</th>
+            </tr>
+          </thead>
+          <tbody id="go-scoreboard-body"></tbody>
+        </table>
+      </div>
+
+      <div class="gameover-actions">
+        <span class="return-countdown">Tự động trở về sảnh sau: <b id="go-return-timer">10</b>s</span>
+        <button id="btn-return-lobby" class="btn-primary">🚪 TRỞ VỀ SẢNH NGAY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modular Script Entrypoint -->
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

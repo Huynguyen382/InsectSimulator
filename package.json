@@ -1,0 +1,15 @@
+{
+  "name": "insect-simulator-3v3",
+  "version": "1.0.0",
+  "description": "3D Multiplayer Insect Simulator (3v3) Web Game",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "kill": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\""
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "three": "^0.186.1",
+    "ws": "^8.18.0"
+  }
+}
