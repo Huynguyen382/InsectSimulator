@@ -1732,3 +1732,98 @@ body, html {
   color: #fca5a5;
   margin-bottom: 12px;
 }
+
+/* --- IN-GAME LEAVE MATCH BUTTON & CONFIRMATION MODAL --- */
+.btn-hud-leave {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 100;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  color: #fca5a5;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  user-select: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.btn-hud-leave:hover {
+  background: rgba(220, 38, 38, 0.9);
+  color: #ffffff;
+  border-color: #ef4444;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+}
+
+#confirm-leave-modal {
+  z-index: 95;
+}
+
+.confirm-leave-card {
+  max-width: 440px;
+  width: 90%;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 2px solid rgba(239, 68, 68, 0.65);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 35px rgba(239, 68, 68, 0.25);
+  animation: modal-pop 0.25s ease;
+  pointer-events: auto;
+}
+
+.confirm-leave-icon {
+  font-size: 2.6rem;
+  margin-bottom: 10px;
+}
+
+.confirm-leave-title {
+  color: #f87171;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.confirm-leave-desc {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.confirm-leave-tip {
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin-bottom: 22px;
+}
+
+.confirm-leave-tip i {
+  color: #38bdf8;
+}
+
+.confirm-leave-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-leave-actions button {
+  flex: 1;
+  padding: 11px 16px;
+  font-size: 0.88rem;
+  border-radius: 8px;
+}

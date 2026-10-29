@@ -1,15 +1,15 @@
 export const CLIENT_CONFIG = {
   MOUSE_SENSITIVITY: 0.0018,         // Smooth horizontal look (yaw)
-  MOUSE_PITCH_SENSITIVITY: 0.0015,   // Balanced vertical look (pitch) - eliminating vertical sluggishness
-  INVERT_MOUSE_X: true,              // Di chuột sang trái rẽ phải, di sang phải rẽ trái
-  INVERT_MOUSE_Y: true,               // Đổi hướng di chuyển lên xuống của chuột
+  MOUSE_PITCH_SENSITIVITY: 0.0014,   // Balanced vertical look (pitch)
+  INVERT_MOUSE_X: false,             // Di chuột tự nhiên 1:1 (di trái quay trái, di phải quay phải - chống chóng mặt)
+  INVERT_MOUSE_Y: false,             // Di chuột tự nhiên 1:1 (di lên nhìn lên, di xuống nhìn xuống)
 
-  // Camera Settings: Spacious, elevated 3rd-person view with clear crosshair sightlines
-  CAMERA_DISTANCE: 4.8,            // Increased from 3.2 to 4.8 for spacious view
-  CAMERA_HEIGHT: 1.65,             // Elevated so fly model is in lower-third of screen
-  CAMERA_LOOK_AHEAD_DIST: 35.0,    // Camera aims downfield, keeping crosshair clear of model
-  CAMERA_SMOOTH_FACTOR: 0.16,      // Smooth camera position damping
-  CAMERA_LOOKAT_SMOOTH: 0.22,      // Smooth look-at target interpolation
+  // Camera Settings: Spacious, elevated 3rd-person view with anti-motion-sickness damping
+  CAMERA_DISTANCE: 5.6,            // Kéo xa cự ly tầm nhìn thoáng đãng, giảm tốc độ trôi nền
+  CAMERA_HEIGHT: 2.1,              // Nâng cao camera giúp góc nhìn bao quát, giảm chóng mặt
+  CAMERA_LOOK_AHEAD_DIST: 38.0,    // Camera hướng xa về phía trước, giữ tâm ngắm cố định
+  CAMERA_SMOOTH_FACTOR: 0.22,      // Damping mềm mại cho camera
+  CAMERA_LOOKAT_SMOOTH: 0.25,      // Damping mềm mại cho điểm nhìn (look-at)
   
   // Aim Assist Parameters: Strictly 10m cutoff (No assist beyond 10m)
   AIM_ASSIST_CONE_DEG: 18.0,
@@ -21,7 +21,7 @@ export const CLIENT_CONFIG = {
   // Visual Polish
   WING_FLAP_SPEED: 0.06,
   POSITION_LERP_FACTOR: 0.35,
-  BANKING_SMOOTH_FACTOR: 0.15,
+  BANKING_SMOOTH_FACTOR: 0.10,     // Giảm lắc ngang giữ đường chân trời ổn định
 
   // Forest Flight Boundaries (Symmetrical & strictly within the 76m x 76m forest)
   BOUNDS: {

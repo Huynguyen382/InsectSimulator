@@ -10,11 +10,12 @@ export class SceneManager {
     // Natural daytime atmospheric haze softly blending forest perimeter into the sunny sky dome
     this.scene.fog = new THREE.Fog(0xbbe5fd, 28, 52);
 
+    // Camera with spacious 78° FOV (Prevents tunnel-vision motion sickness & expands peripheral awareness)
     this.camera = new THREE.PerspectiveCamera(
-      65,
+      78,
       window.innerWidth / window.innerHeight,
       0.1,
-      70
+      75
     );
 
     this.renderer = new THREE.WebGLRenderer({

@@ -18,6 +18,11 @@ const wss = new WebSocketServer({
 // Middleware
 app.use(express.json());
 
+// Security: Chặn hoàn toàn truy cập trực tiếp vào thư mục mã nguồn thô (/src)
+app.use('/src', (req, res) => {
+  res.status(403).send('Forbidden: Source code access is strictly restricted');
+});
+
 // Serve static assets & Local Three.js modules (Zero CDN dependency, 100% offline reliable)
 app.use(express.static(path.join(__dirname, '..', 'client')));
 app.use('/Model', express.static(path.join(__dirname, '..', 'Model')));
@@ -134,6 +139,18 @@ wss.on('connection', (ws) => {
 
         case 'LEAVE_QUEUE': {
           matchmaker.dequeue(playerId);
+          break;
+        }
+
+        case 'LEAVE_MATCH': {
+          matchmaker.removePlayer(playerId);
+          matchmaker.registerLobbySocket(ws);
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'MATCH_LEFT',
+              rooms: matchmaker.getPublicRooms()
+            }));
+          }
           break;
         }
 

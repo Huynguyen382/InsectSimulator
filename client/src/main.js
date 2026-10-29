@@ -338,6 +338,10 @@ class Game {
       this.returnToLobby();
     });
 
+    network.on('MATCH_LEFT', () => {
+      this.returnToLobby();
+    });
+
     network.on('WORLD_STATE', (state) => {
       this.handleWorldState(state);
     });
@@ -584,8 +588,49 @@ class Game {
     });
 
     window.addEventListener('click', () => {
+      if (this.uiManager.isConfirmLeaveOpen()) return;
+      if (this.uiManager.dom.gameoverModal && !this.uiManager.dom.gameoverModal.classList.contains('hidden')) return;
       if (this.currentRoomId && !this.inputController.isPointerLocked && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
         this.inputController.requestLock();
+      }
+    });
+
+    // In-Game Leave Match & Confirm Modal Listeners
+    if (this.uiManager.dom.btnInGameLeave) {
+      this.uiManager.dom.btnInGameLeave.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.inputController.exitLock();
+        this.uiManager.showConfirmLeave();
+      });
+    }
+
+    if (this.uiManager.dom.btnCancelLeave) {
+      this.uiManager.dom.btnCancelLeave.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.uiManager.hideConfirmLeave();
+        this.inputController.requestLock();
+      });
+    }
+
+    if (this.uiManager.dom.btnConfirmLeave) {
+      this.uiManager.dom.btnConfirmLeave.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.leaveMatch();
+      });
+    }
+
+    // Toggle Confirm Leave via ESC key during match
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.code === 'Escape') {
+        if (this.currentRoomId) {
+          if (this.uiManager.isConfirmLeaveOpen()) {
+            this.uiManager.hideConfirmLeave();
+            this.inputController.requestLock();
+          } else if (this.uiManager.dom.levelupModal.classList.contains('hidden')) {
+            this.inputController.exitLock();
+            this.uiManager.showConfirmLeave();
+          }
+        }
       }
     });
 
@@ -642,11 +687,23 @@ class Game {
     });
   }
 
+  leaveMatch() {
+    this.uiManager.hideConfirmLeave();
+    if (this.currentRoomId) {
+      network.send({ type: 'LEAVE_MATCH' });
+    }
+    this.returnToLobby();
+  }
+
   returnToLobby() {
     this.currentRoomId = null;
     this.isDead = false;
     this.localPlayer.initialized = false;
     this.localPlayer.ammo = 0;
+
+    // Reset camera to cinematic lobby angle
+    this.sceneManager.camera.position.set(0, 15, 30);
+    this.sceneManager.camera.lookAt(0, 0, 0);
 
     // Remove all entity visuals from 3D scene
     this.playerVisuals.forEach(v => {
@@ -875,9 +932,9 @@ class Game {
     this.localPlayer.vy += (targetVy - this.localPlayer.vy) * smooth;
     this.localPlayer.vz += (targetVz - this.localPlayer.vz) * smooth;
 
-    // Aerodynamic banking roll (D banks right, A banks left)
-    const targetRoll = -strafe * 0.35;
-    this.localPlayer.roll += (targetRoll - this.localPlayer.roll) * (1 - Math.exp(-16.0 * dt));
+    // Aerodynamic banking roll: giảm biên độ nghiêng để giữ vững đường chân trời phẳng, chống chóng mặt
+    const targetRoll = -strafe * 0.12;
+    this.localPlayer.roll += (targetRoll - this.localPlayer.roll) * (1 - Math.exp(-14.0 * dt));
 
     // Integrate position
     let newX = this.localPlayer.x + this.localPlayer.vx * dt;
@@ -970,20 +1027,26 @@ class Game {
     const fwdY = sinPitch;
     const fwdZ = cosYaw * cosPitch;
 
-    // Camera rigidly follows fly position (Zero relative jitter / Zero rubbery swimming!)
+    // Camera Anti-Motion-Sickness: Soft spring damping hấp thụ rung giật khi va chạm & đổi góc nhìn
     const targetCamX = this.localPlayer.x - fwdX * dist;
     const targetCamY = this.localPlayer.y + height - fwdY * (dist * 0.45);
     const targetCamZ = this.localPlayer.z - fwdZ * dist;
 
-    this.sceneManager.camera.position.set(targetCamX, targetCamY, targetCamZ);
+    const camLerp = 1 - Math.exp(-22.0 * dt);
+    this.sceneManager.camera.position.x += (targetCamX - this.sceneManager.camera.position.x) * camLerp;
+    this.sceneManager.camera.position.y += (targetCamY - this.sceneManager.camera.position.y) * camLerp;
+    this.sceneManager.camera.position.z += (targetCamZ - this.sceneManager.camera.position.z) * camLerp;
 
     // Reticle aimed downfield into the distance (unobstructed rock-solid sightlines)
     const lookDist = CLIENT_CONFIG.CAMERA_LOOK_AHEAD_DIST;
-    const lookX = this.localPlayer.x + fwdX * lookDist;
-    const lookY = this.localPlayer.y + 0.5 + fwdY * lookDist;
-    const lookZ = this.localPlayer.z + fwdZ * lookDist;
+    const targetLookX = this.localPlayer.x + fwdX * lookDist;
+    const targetLookY = this.localPlayer.y + 0.5 + fwdY * lookDist;
+    const targetLookZ = this.localPlayer.z + fwdZ * lookDist;
 
-    this.currentLookAt.set(lookX, lookY, lookZ);
+    const lookLerp = 1 - Math.exp(-24.0 * dt);
+    this.currentLookAt.x += (targetLookX - this.currentLookAt.x) * lookLerp;
+    this.currentLookAt.y += (targetLookY - this.currentLookAt.y) * lookLerp;
+    this.currentLookAt.z += (targetLookZ - this.currentLookAt.z) * lookLerp;
     this.sceneManager.camera.lookAt(this.currentLookAt);
 
     // Arena boundary warning check (Within 2m of forest perimeter)

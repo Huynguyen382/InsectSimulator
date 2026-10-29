@@ -87,7 +87,13 @@ export class UIManager {
       goMvpName: document.getElementById('go-mvp-name'),
       goScoreboardBody: document.getElementById('go-scoreboard-body'),
       goReturnTimer: document.getElementById('go-return-timer'),
-      btnReturnLobby: document.getElementById('btn-return-lobby')
+      btnReturnLobby: document.getElementById('btn-return-lobby'),
+
+      // In-game Leave Match UI
+      btnInGameLeave: document.getElementById('btn-in-game-leave'),
+      confirmLeaveModal: document.getElementById('confirm-leave-modal'),
+      btnCancelLeave: document.getElementById('btn-cancel-leave'),
+      btnConfirmLeave: document.getElementById('btn-confirm-leave')
     };
 
     this.initAmmoPills(20);
@@ -362,6 +368,7 @@ export class UIManager {
     this.dom.lobbyScreen.classList.add('hidden');
     if (this.dom.customRoomModal) this.dom.customRoomModal.classList.add('hidden');
     if (this.dom.gameoverModal) this.dom.gameoverModal.classList.add('hidden');
+    if (this.dom.confirmLeaveModal) this.dom.confirmLeaveModal.classList.add('hidden');
     this.dom.gameHud.classList.remove('hidden');
   }
 
@@ -370,7 +377,30 @@ export class UIManager {
     if (this.dom.foodFormHud) this.dom.foodFormHud.classList.add('hidden');
     if (this.dom.customRoomModal) this.dom.customRoomModal.classList.add('hidden');
     if (this.dom.gameoverModal) this.dom.gameoverModal.classList.add('hidden');
+    if (this.dom.levelupModal) this.dom.levelupModal.classList.add('hidden');
+    if (this.dom.respawnOverlay) this.dom.respawnOverlay.classList.add('hidden');
+    if (this.dom.confirmLeaveModal) this.dom.confirmLeaveModal.classList.add('hidden');
     this.dom.lobbyScreen.classList.remove('hidden');
+  }
+
+  showConfirmLeave() {
+    if (this.dom.confirmLeaveModal) {
+      this.dom.confirmLeaveModal.classList.remove('hidden');
+    }
+  }
+
+  hideConfirmLeave() {
+    if (this.dom.confirmLeaveModal) {
+      this.dom.confirmLeaveModal.classList.add('hidden');
+    }
+  }
+
+  isConfirmLeaveOpen() {
+    return Boolean(this.dom.confirmLeaveModal && !this.dom.confirmLeaveModal.classList.contains('hidden'));
+  }
+
+  isLevelUpOpen() {
+    return Boolean(this.dom.levelupModal && !this.dom.levelupModal.classList.contains('hidden'));
   }
 
   setPing(ms) {

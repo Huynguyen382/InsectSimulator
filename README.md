@@ -46,3 +46,4 @@ Access the game at: `http://localhost:3000`
 - **Client**: Vanilla JavaScript (ES Modules), Three.js, HTML5 Canvas, Modern CSS
 - **Server**: Node.js, Express, WebSocket (`ws`)
 - **Assets**: GLTF/GLB 3D models with LOD & geometry batching optimization
+

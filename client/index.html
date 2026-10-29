@@ -5,6 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Insect Simulator 3v3 Arena</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Advanced Anti-Inspect, Anti-DevTools & Debugger Trap Protection -->
+  <script>
+    (function () {
+      // 1. Chặn chuột phải (Context Menu)
+      document.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        return false;
+      }, { capture: true });
+
+      // 2. Chặn các phím tắt mở DevTools & Xem Source Code
+      window.addEventListener('keydown', function (e) {
+        // F12
+        if (e.key === 'F12' || e.keyCode === 123) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+        // Ctrl + Shift + I / J / C (Inspect / Console)
+        if (e.ctrlKey && e.shiftKey && (
+          e.key === 'I' || e.key === 'i' ||
+          e.key === 'J' || e.key === 'j' ||
+          e.key === 'C' || e.key === 'c' ||
+          e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67
+        )) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+        // Ctrl + U (View Source)
+        if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+        // Ctrl + S (Save Page)
+        if (e.ctrlKey && (e.key === 'S' || e.key === 's' || e.keyCode === 83)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }, { capture: true });
+
+      // 3. Debugger Trap: Nếu mở DevTools bằng Menu trình duyệt, vòng lặp ngắt thực thi liên tục
+      var blockDevTools = function () {
+        setInterval(function () {
+          (function () {
+            return false;
+          }['constructor']('debugger')['call']());
+        }, 50);
+      };
+      try {
+        blockDevTools();
+      } catch (err) {}
+    })();
+  </script>
+
   <!-- Local Three.js + GLTFLoader (Zero CDN latency, 100% offline reliable) -->
   <script type="importmap">
     {
@@ -192,6 +249,11 @@
 
   <!-- HUD IN-GAME -->
   <div id="game-hud" class="hud-layer hidden">
+    <!-- In-Game Leave Match Button (Top Right) -->
+    <button id="btn-in-game-leave" class="btn-hud-leave" title="Rời trận đấu về sảnh chính (hoặc bấm Esc)">
+      🚪 Thoát trận [ESC]
+    </button>
+
     <!-- Boundary Warning Banner (Sleek Compact Top Pill) -->
     <div id="boundary-warning" class="boundary-warning hidden">
       ⚠️ RÀO CHẮN RỪNG ĐÊM - BẠN ĐANG Ở RÌA BẢN ĐỒ!
@@ -375,7 +437,25 @@
     </div>
   </div>
 
-  <!-- Modular Script Entrypoint -->
-  <script type="module" src="src/main.js"></script>
+  <!-- Confirm Leave Match Modal -->
+  <div id="confirm-leave-modal" class="overlay-screen hidden">
+    <div class="confirm-leave-card">
+      <div class="confirm-leave-icon">🚪</div>
+      <h2 class="confirm-leave-title">XÁC NHẬN THOÁT TRẬN</h2>
+      <p class="confirm-leave-desc">
+        Bạn có chắc muốn rời khỏi trận đấu và quay về sảnh chính không?
+      </p>
+      <div class="confirm-leave-tip">
+        💡 <i>Nếu bạn rời đi, một Bot AI sẽ tự động thay thế vị trí của bạn để đảm bảo cân bằng lực lượng cho đồng đội.</i>
+      </div>
+      <div class="confirm-leave-actions">
+        <button id="btn-cancel-leave" class="btn-utility">⚔️ TIẾP TỤC CHIẾN ĐẤU</button>
+        <button id="btn-confirm-leave" class="btn-danger">🚪 RỜI TRẬN ĐẤU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Production Obfuscated & Bundled Entrypoint (Zero source exposure) -->
+  <script type="module" src="dist/game.min.js"></script>
 </body>
 </html>
