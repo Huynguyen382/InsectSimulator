@@ -142,10 +142,75 @@ class Game {
     this.assetLoader.currentQualityKey = this.currentQuality;
     this.initForestQualityController();
 
+    // Platform Selector (PC vs Mobile Matchmaking Separation)
+    this.platform = this.detectPlatform();
+    this.initPlatformController();
+
     this.initPreload();
     this.initNetwork();
     this.initLobbyEvents();
     this.startLoop();
+  }
+
+  detectPlatform() {
+    const saved = localStorage.getItem('insect_platform');
+    if (saved === 'mobile' || saved === 'pc') return saved;
+    const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isSmallScreen = window.innerWidth <= 900;
+    return (hasTouch && (isMobileUA || isSmallScreen)) ? 'mobile' : 'pc';
+  }
+
+  applyPlatform(platform) {
+    if (platform !== 'mobile' && platform !== 'pc') platform = 'pc';
+    this.platform = platform;
+    localStorage.setItem('insect_platform', platform);
+    this.inputController.setPlatform(platform);
+
+    const btnPc = document.getElementById('btn-platform-pc');
+    const btnMobile = document.getElementById('btn-platform-mobile');
+    const desc = document.getElementById('platform-desc-text');
+
+    if (btnPc && btnMobile) {
+      btnPc.classList.toggle('active', platform === 'pc');
+      btnMobile.classList.toggle('active', platform === 'mobile');
+    }
+
+    if (desc) {
+      desc.innerText = platform === 'mobile'
+        ? '📱 Ghép trận: CHỈ GHÉP VỚI MOBILE (Cần gạt ảo & Cảm ứng)'
+        : '💻 Ghép trận: CHỈ GHÉP VỚI PC (Chuột & Bàn phím WASD)';
+    }
+
+    const mobileLayer = document.getElementById('mobile-controls');
+    if (mobileLayer) {
+      if (this.currentRoomId && platform === 'mobile') {
+        mobileLayer.classList.remove('hidden');
+      } else {
+        mobileLayer.classList.add('hidden');
+      }
+    }
+  }
+
+  initPlatformController() {
+    this.applyPlatform(this.platform);
+
+    const btnPc = document.getElementById('btn-platform-pc');
+    const btnMobile = document.getElementById('btn-platform-mobile');
+
+    if (btnPc) {
+      btnPc.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.applyPlatform('pc');
+      });
+    }
+
+    if (btnMobile) {
+      btnMobile.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.applyPlatform('mobile');
+      });
+    }
   }
 
   initFpsTargetController() {
@@ -283,13 +348,13 @@ class Game {
 
     // Custom Room Network Handlers
     network.on('CUSTOM_ROOM_UPDATE', (msg) => {
-      this.uiManager.showCustomRoomModal(msg.roomCode, msg.players, this.myPlayerId, msg.hostId);
+      this.uiManager.showCustomRoomModal(msg.roomCode, msg.players, this.myPlayerId, msg.hostId, msg.platform);
     });
 
     network.on('CUSTOM_ROOMS_LIST', (msg) => {
       this.uiManager.renderOpenRooms(msg.rooms, (code) => {
         const name = this.uiManager.getPlayerName();
-        network.send({ type: 'JOIN_CUSTOM_ROOM', roomCode: code, name });
+        network.send({ type: 'JOIN_CUSTOM_ROOM', roomCode: code, name, platform: this.platform });
       });
     });
 
@@ -340,7 +405,14 @@ class Game {
       });
       this.inputController.mouse.yaw = this.myTeam === 0 ? 0 : Math.PI;
       this.inputController.mouse.pitch = 0;
-      this.inputController.requestLock();
+
+      // Mobile Touch vs Desktop PointerLock
+      if (this.platform === 'mobile') {
+        const ml = document.getElementById('mobile-controls');
+        if (ml) ml.classList.remove('hidden');
+      } else {
+        this.inputController.requestLock();
+      }
     });
 
     // Match End & Game Over Screen
@@ -543,17 +615,17 @@ class Game {
       if (this.uiManager.dom.btnSoloPractice.disabled) return;
       const name = this.uiManager.getPlayerName();
       network.connect(() => {
-        network.send({ type: 'START_SOLO_PRACTICE', name });
+        network.send({ type: 'START_SOLO_PRACTICE', name, platform: this.platform });
       });
     });
 
-    // Mode 2: Auto Matchmaking Queue 3v3
+    // Mode 2: Auto Matchmaking Queue 3v3 (Separated by platform)
     this.uiManager.dom.btnFindMatch.addEventListener('click', () => {
       if (this.uiManager.dom.btnFindMatch.disabled) return;
       const name = this.uiManager.getPlayerName();
       this.uiManager.setQueueStatus(true, 1);
       network.connect(() => {
-        network.send({ type: 'JOIN_QUEUE', name });
+        network.send({ type: 'JOIN_QUEUE', name, platform: this.platform });
       });
     });
 
@@ -562,7 +634,7 @@ class Game {
       if (this.uiManager.dom.btnCreateRoom.disabled) return;
       const name = this.uiManager.getPlayerName();
       network.connect(() => {
-        network.send({ type: 'CREATE_CUSTOM_ROOM', name });
+        network.send({ type: 'CREATE_CUSTOM_ROOM', name, platform: this.platform });
       });
     });
 
@@ -575,7 +647,7 @@ class Game {
         return;
       }
       network.connect(() => {
-        network.send({ type: 'JOIN_CUSTOM_ROOM', roomCode, name });
+        network.send({ type: 'JOIN_CUSTOM_ROOM', roomCode, name, platform: this.platform });
       });
     });
 
@@ -605,6 +677,7 @@ class Game {
     });
 
     window.addEventListener('click', () => {
+      if (this.platform === 'mobile') return; // Mobile touch interaction bypasses pointer lock
       if (this.uiManager.isConfirmLeaveOpen()) return;
       if (this.uiManager.isGuideModalOpen()) return;
       if (this.uiManager.dom.gameoverModal && !this.uiManager.dom.gameoverModal.classList.contains('hidden')) return;
@@ -618,7 +691,7 @@ class Game {
       if (this.uiManager.isGuideModalOpen()) {
         this.uiManager.hideGuideModal();
         if (this.currentRoomId && !this.uiManager.isConfirmLeaveOpen() && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
-          this.inputController.requestLock();
+          if (this.platform !== 'mobile') this.inputController.requestLock();
         }
       } else {
         if (this.currentRoomId) {
@@ -647,7 +720,7 @@ class Game {
         e.stopPropagation();
         this.uiManager.hideGuideModal();
         if (this.currentRoomId && !this.uiManager.isConfirmLeaveOpen() && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
-          this.inputController.requestLock();
+          if (this.platform !== 'mobile') this.inputController.requestLock();
         }
       });
     }
@@ -657,7 +730,7 @@ class Game {
         e.stopPropagation();
         this.uiManager.hideGuideModal();
         if (this.currentRoomId && !this.uiManager.isConfirmLeaveOpen() && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
-          this.inputController.requestLock();
+          if (this.platform !== 'mobile') this.inputController.requestLock();
         }
       });
     }
@@ -675,7 +748,7 @@ class Game {
       this.uiManager.dom.btnCancelLeave.addEventListener('click', (e) => {
         e.stopPropagation();
         this.uiManager.hideConfirmLeave();
-        this.inputController.requestLock();
+        if (this.platform !== 'mobile') this.inputController.requestLock();
       });
     }
 
@@ -705,7 +778,7 @@ class Game {
           e.preventDefault();
           this.uiManager.hideGuideModal();
           if (this.currentRoomId && !this.uiManager.isConfirmLeaveOpen() && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
-            this.inputController.requestLock();
+            if (this.platform !== 'mobile') this.inputController.requestLock();
           }
           return;
         }
@@ -713,7 +786,7 @@ class Game {
         if (this.currentRoomId) {
           if (this.uiManager.isConfirmLeaveOpen()) {
             this.uiManager.hideConfirmLeave();
-            this.inputController.requestLock();
+            if (this.platform !== 'mobile') this.inputController.requestLock();
           } else if (this.uiManager.dom.levelupModal.classList.contains('hidden')) {
             this.inputController.exitLock();
             this.uiManager.showConfirmLeave();
@@ -816,6 +889,9 @@ class Game {
 
     this.projectilePool.clear();
     this.particleSystem.clear();
+
+    const mobileLayer = document.getElementById('mobile-controls');
+    if (mobileLayer) mobileLayer.classList.add('hidden');
 
     this.inputController.exitLock();
     this.uiManager.switchToLobbyView();

@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Insect Simulator 3v3 Arena</title>
   <link rel="stylesheet" href="style.css">
 
@@ -123,6 +123,22 @@
       <div class="input-group">
         <label for="player-name">Tên phi công ruồi:</label>
         <input type="text" id="player-name" placeholder="Ruồi Siêu Tốc" maxlength="15" value="FlyPilot">
+      </div>
+
+      <!-- Platform Selection (Mobile vs PC Separate Matchmaking) -->
+      <div class="platform-card-box">
+        <div class="platform-label-row">
+          <span class="platform-title">📱 NỀN TẢNG GHÉP TRẬN:</span>
+          <span id="platform-desc-text" class="platform-desc">Tự động nhận diện thiết bị của bạn</span>
+        </div>
+        <div class="platform-btn-group" id="lobby-platform-group">
+          <button type="button" class="btn-platform" id="btn-platform-pc" data-platform="pc" title="Chế độ Chuột & Bàn phím (Chỉ ghép với người chơi PC)">
+            💻 Máy tính (PC)
+          </button>
+          <button type="button" class="btn-platform" id="btn-platform-mobile" data-platform="mobile" title="Chế độ Cảm ứng Touch (Chỉ ghép với người chơi Mobile)">
+            📱 Điện thoại (Mobile)
+          </button>
+        </div>
       </div>
 
       <!-- Action Buttons -->
@@ -386,6 +402,42 @@
       <button class="radio-btn" data-msg="Tổng tấn công!">⚔️ Tấn công</button>
       <button class="radio-btn" data-msg="Rút lui khẩn cấp!">🛡️ Rút lui</button>
     </div>
+
+    <!-- Mobile Virtual Touch Controls (Hiển thị khi chơi trên thiết bị Mobile) -->
+    <div id="mobile-controls" class="mobile-controls-layer hidden">
+      <!-- Joystick ảo di chuyển bên trái (WASD Analog) -->
+      <div id="touch-joystick-zone" class="touch-joystick-zone">
+        <div id="touch-joystick-base" class="joystick-base">
+          <div id="touch-joystick-stick" class="joystick-stick"></div>
+        </div>
+      </div>
+
+      <!-- Vùng vuốt xoay camera 360 độ bên phải -->
+      <div id="touch-look-zone" class="touch-look-zone">
+        <span class="touch-look-hint">Vuốt xoay 360°</span>
+      </div>
+
+      <!-- Cụm nút hành động cảm ứng góc phải -->
+      <div class="mobile-action-buttons">
+        <!-- Nút Bay lên cao (Space) -->
+        <button type="button" id="btn-touch-up" class="btn-touch-action btn-touch-up" title="Bay lên cao (Space)">
+          <span class="btn-touch-icon">▲</span>
+          <span class="btn-touch-label">LÊN</span>
+        </button>
+
+        <!-- Nút Hạ sát đất (Shift / C) -->
+        <button type="button" id="btn-touch-down" class="btn-touch-action btn-touch-down" title="Hạ sát đất (Shift)">
+          <span class="btn-touch-icon">▼</span>
+          <span class="btn-touch-label">XUỐNG</span>
+        </button>
+
+        <!-- Nút Bắn đạn to nổi bật (Fire) -->
+        <button type="button" id="btn-touch-shoot" class="btn-touch-action btn-touch-shoot" title="Bắn đạn">
+          <span class="btn-touch-icon">🎯</span>
+          <span class="btn-touch-label">BẮN</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Level-Up Upgrade Modal -->
@@ -511,6 +563,22 @@
             <div class="key-card">
               <span class="key-badge">Phím F8</span>
               <span class="key-desc">Đổi nhanh đồ họa rừng: Siêu mượt ⚡ / Cân bằng ⚖️ / Đầy đủ 🌳</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">📱 Cần Gạt Joystick (Trái)</span>
+              <span class="key-desc">Di chuyển bay lượn 360° linh hoạt trên điện thoại (WASD Analog)</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">📱 Vuốt Màn Hình (Phải)</span>
+              <span class="key-desc">Xoay camera 360° ngắm bắn mục tiêu mượt mà không cần chuột</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">📱 Nút Bắn & Lên/Xuống</span>
+              <span class="key-desc">Nút ảo cảm ứng: Bắn đạn 🎯, Bay vút lên cao ▲, Hạ sát đất ▼</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">📱 Ghép Trận Cùng Nền Tảng</span>
+              <span class="key-desc">Hệ thống phân tách riêng biệt: Mobile chỉ ghép Mobile, PC chỉ ghép PC!</span>
             </div>
           </div>
         </div>

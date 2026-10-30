@@ -5,6 +5,8 @@ export class InputController {
     this.onShoot = onShoot;
     this.isPointerLocked = false;
     this.aimFriction = 1.0; // 1.0 = normal, 0.65 = slowed down when locking enemy
+    this.platform = 'pc';
+    this.isMobile = false;
 
     this.keys = {
       forward: false,
@@ -15,6 +17,29 @@ export class InputController {
       down: false
     };
 
+    // Virtual Touch Controls State
+    this.touchAxes = {
+      forward: 0,
+      right: 0
+    };
+    this.touchKeys = {
+      up: false,
+      down: false
+    };
+
+    this.joystickState = {
+      touchId: null,
+      originX: 0,
+      originY: 0,
+      maxRadius: 45
+    };
+
+    this.lookTouchState = {
+      touchId: null,
+      lastX: 0,
+      lastY: 0
+    };
+
     this.mouse = {
       yaw: 0,
       pitch: 0
@@ -22,6 +47,20 @@ export class InputController {
 
     this.setupUnikeyShield();
     this.initListeners();
+    this.initTouchControls();
+  }
+
+  setPlatform(platform) {
+    this.platform = platform === 'mobile' ? 'mobile' : 'pc';
+    this.isMobile = (this.platform === 'mobile');
+    const mobileLayer = document.getElementById('mobile-controls');
+    if (mobileLayer) {
+      if (this.isMobile) {
+        mobileLayer.classList.remove('hidden');
+      } else {
+        mobileLayer.classList.add('hidden');
+      }
+    }
   }
 
   /**
@@ -47,8 +86,8 @@ export class InputController {
   }
 
   focusShield() {
+    if (this.isMobile) return; // Do not focus keyboard shield on mobile (prevents soft keyboard from popping up!)
     if (this.unikeyShield && this.isPointerLocked) {
-      // Don't steal focus if user is intentionally typing in an active text input/textarea
       const active = document.activeElement;
       if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') && active !== this.unikeyShield) {
         return;
@@ -76,6 +115,10 @@ export class InputController {
     this.keys.right = false;
     this.keys.up = false;
     this.keys.down = false;
+    this.touchAxes.forward = 0;
+    this.touchAxes.right = 0;
+    this.touchKeys.up = false;
+    this.touchKeys.down = false;
   }
 
   isForwardKey(e) {
@@ -185,7 +228,7 @@ export class InputController {
       this.mouse.pitch = Math.max(-Math.PI / 3.2, Math.min(Math.PI / 3.2, this.mouse.pitch));
     });
 
-    // Left Click Shoot
+    // Left Click Shoot (Desktop)
     window.addEventListener('mousedown', (e) => {
       if (this.isPointerLocked && e.button === 0) {
         if (this.onShoot) this.onShoot();
@@ -193,11 +236,186 @@ export class InputController {
     });
   }
 
+  // --- MOBILE VIRTUAL JOYSTICK & TOUCH LOOK SYSTEM ---
+  initTouchControls() {
+    const joystickZone = document.getElementById('touch-joystick-zone');
+    const joystickBase = document.getElementById('touch-joystick-base');
+    const joystickStick = document.getElementById('touch-joystick-stick');
+    const lookZone = document.getElementById('touch-look-zone');
+    const btnShoot = document.getElementById('btn-touch-shoot');
+    const btnUp = document.getElementById('btn-touch-up');
+    const btnDown = document.getElementById('btn-touch-down');
+
+    // 1. Virtual Joystick Touch Handler
+    if (joystickZone && joystickBase && joystickStick) {
+      const resetStick = () => {
+        this.joystickState.touchId = null;
+        this.touchAxes.forward = 0;
+        this.touchAxes.right = 0;
+        joystickStick.style.transform = 'translate(0px, 0px)';
+        joystickBase.classList.remove('active');
+      };
+
+      joystickZone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.joystickState.touchId !== null) return;
+        const touch = e.changedTouches[0];
+        this.joystickState.touchId = touch.identifier;
+
+        const rect = joystickBase.getBoundingClientRect();
+        this.joystickState.originX = rect.left + rect.width / 2;
+        this.joystickState.originY = rect.top + rect.height / 2;
+        joystickBase.classList.add('active');
+      }, { passive: false });
+
+      const onTouchMoveJoystick = (e) => {
+        if (this.joystickState.touchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.identifier === this.joystickState.touchId) {
+            e.preventDefault();
+            const dx = touch.clientX - this.joystickState.originX;
+            const dy = touch.clientY - this.joystickState.originY;
+            const dist = Math.hypot(dx, dy);
+            const maxRadius = this.joystickState.maxRadius;
+
+            const clampedDist = Math.min(dist, maxRadius);
+            const angle = Math.atan2(dy, dx);
+            const stickX = Math.cos(angle) * clampedDist;
+            const stickY = Math.sin(angle) * clampedDist;
+
+            joystickStick.style.transform = `translate(${stickX}px, ${stickY}px)`;
+
+            // Forward: kéo lên (dy < 0) -> bay tiến (+1), kéo xuống (dy > 0) -> bay lùi (-1)
+            this.touchAxes.forward = - (stickY / maxRadius);
+            // Right: kéo sang phải (dx > 0) -> rẽ phải (-1 trong mapping game), kéo sang trái (dx < 0) -> rẽ trái (+1)
+            this.touchAxes.right = - (stickX / maxRadius);
+            break;
+          }
+        }
+      };
+
+      const onTouchEndJoystick = (e) => {
+        if (this.joystickState.touchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === this.joystickState.touchId) {
+            resetStick();
+            break;
+          }
+        }
+      };
+
+      window.addEventListener('touchmove', onTouchMoveJoystick, { passive: false });
+      window.addEventListener('touchend', onTouchEndJoystick, { passive: true });
+      window.addEventListener('touchcancel', onTouchEndJoystick, { passive: true });
+    }
+
+    // 2. Touch Look Zone (Swipe to rotate camera 360°)
+    if (lookZone) {
+      lookZone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.lookTouchState.touchId !== null) return;
+        const touch = e.changedTouches[0];
+        this.lookTouchState.touchId = touch.identifier;
+        this.lookTouchState.lastX = touch.clientX;
+        this.lookTouchState.lastY = touch.clientY;
+      }, { passive: false });
+
+      const onTouchMoveLook = (e) => {
+        if (this.lookTouchState.touchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.identifier === this.lookTouchState.touchId) {
+            e.preventDefault();
+            const deltaX = touch.clientX - this.lookTouchState.lastX;
+            const deltaY = touch.clientY - this.lookTouchState.lastY;
+            this.lookTouchState.lastX = touch.clientX;
+            this.lookTouchState.lastY = touch.clientY;
+
+            // Touch Look Sensitivity
+            const touchYawSens = (CLIENT_CONFIG.MOUSE_SENSITIVITY || 0.0022) * 1.6 * this.aimFriction;
+            const touchPitchSens = (CLIENT_CONFIG.MOUSE_PITCH_SENSITIVITY || 0.0011) * 1.5 * this.aimFriction;
+            const xMult = CLIENT_CONFIG.INVERT_MOUSE_X ? -1 : 1;
+            const yMult = CLIENT_CONFIG.INVERT_MOUSE_Y ? 1 : -1;
+
+            this.mouse.yaw += deltaX * touchYawSens * xMult;
+            this.mouse.pitch -= deltaY * touchPitchSens * yMult;
+            this.mouse.pitch = Math.max(-Math.PI / 3.2, Math.min(Math.PI / 3.2, this.mouse.pitch));
+            break;
+          }
+        }
+      };
+
+      const onTouchEndLook = (e) => {
+        if (this.lookTouchState.touchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === this.lookTouchState.touchId) {
+            this.lookTouchState.touchId = null;
+            break;
+          }
+        }
+      };
+
+      window.addEventListener('touchmove', onTouchMoveLook, { passive: false });
+      window.addEventListener('touchend', onTouchEndLook, { passive: true });
+      window.addEventListener('touchcancel', onTouchEndLook, { passive: true });
+    }
+
+    // 3. Action Buttons (Shoot, Up, Down)
+    if (btnShoot) {
+      btnShoot.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.onShoot) this.onShoot();
+      }, { passive: false });
+      btnShoot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    }
+
+    if (btnUp) {
+      btnUp.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.touchKeys.up = true;
+      }, { passive: false });
+      btnUp.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.touchKeys.up = false;
+      }, { passive: false });
+      btnUp.addEventListener('touchcancel', () => {
+        this.touchKeys.up = false;
+      });
+    }
+
+    if (btnDown) {
+      btnDown.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.touchKeys.down = true;
+      }, { passive: false });
+      btnDown.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.touchKeys.down = false;
+      }, { passive: false });
+      btnDown.addEventListener('touchcancel', () => {
+        this.touchKeys.down = false;
+      });
+    }
+  }
+
   setAimFriction(friction) {
     this.aimFriction = friction;
   }
 
   requestLock() {
+    if (this.isMobile) {
+      // Touch devices do not use pointer lock (preserves touch events & gesture fluidity)
+      return;
+    }
     if (!this.isPointerLocked) {
       document.body.requestPointerLock();
       this.focusShield();
@@ -205,6 +423,10 @@ export class InputController {
   }
 
   exitLock() {
+    if (this.isMobile) {
+      this.resetKeys();
+      return;
+    }
     if (this.isPointerLocked) {
       document.exitPointerLock();
       this.resetKeys();
@@ -213,11 +435,25 @@ export class InputController {
   }
 
   getInputPacket() {
+    // Keyboard inputs
+    const keyFwd = (this.keys.forward ? 1 : 0) - (this.keys.backward ? 1 : 0);
+    const keyStrafe = (this.keys.left ? 1 : 0) - (this.keys.right ? 1 : 0);
+    const keyUp = (this.keys.up ? 1 : 0) - (this.keys.down ? 1 : 0);
+
+    // Touch inputs
+    const touchFwd = this.touchAxes.forward || 0;
+    const touchStrafe = this.touchAxes.right || 0;
+    const touchUp = (this.touchKeys.up ? 1 : 0) - (this.touchKeys.down ? 1 : 0);
+
+    // Combined analog values clamped to [-1, 1]
+    const finalFwd = Math.max(-1, Math.min(1, keyFwd + touchFwd));
+    const finalStrafe = Math.max(-1, Math.min(1, keyStrafe + touchStrafe));
+    const finalUp = Math.max(-1, Math.min(1, keyUp + touchUp));
+
     return {
-      forward: (this.keys.forward ? 1 : 0) - (this.keys.backward ? 1 : 0),
-      // User mapping: A di chuyển phải (+), D di chuyển trái (-)
-      right: (this.keys.left ? 1 : 0) - (this.keys.right ? 1 : 0),
-      up: (this.keys.up ? 1 : 0) - (this.keys.down ? 1 : 0),
+      forward: finalFwd,
+      right: finalStrafe,
+      up: finalUp,
       yaw: this.mouse.yaw,
       pitch: this.mouse.pitch
     };

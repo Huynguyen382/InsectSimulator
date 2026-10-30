@@ -126,14 +126,16 @@ wss.on('connection', (ws) => {
         // --- MODE 1: SOLO PRACTICE (1 Human + 5 Bots) ---
         case 'START_SOLO_PRACTICE': {
           const name = sanitizeName(msg.name);
-          matchmaker.startSoloPractice({ id: playerId, name, ws });
+          const platform = msg.platform === 'mobile' ? 'mobile' : 'pc';
+          matchmaker.startSoloPractice({ id: playerId, name, platform, ws });
           break;
         }
 
-        // --- MODE 2: MATCHMAKING QUEUE (3v3 PvP with auto-fill) ---
+        // --- MODE 2: MATCHMAKING QUEUE (3v3 PvP with auto-fill, separate platform) ---
         case 'JOIN_QUEUE': {
           const name = sanitizeName(msg.name);
-          matchmaker.enqueue({ id: playerId, name, ws });
+          const platform = msg.platform === 'mobile' ? 'mobile' : 'pc';
+          matchmaker.enqueue({ id: playerId, name, platform, ws });
           break;
         }
 
@@ -157,13 +159,15 @@ wss.on('connection', (ws) => {
         // --- MODE 3: CUSTOM ROOMS ---
         case 'CREATE_CUSTOM_ROOM': {
           const name = sanitizeName(msg.name);
-          matchmaker.createCustomRoom({ id: playerId, name, ws });
+          const platform = msg.platform === 'mobile' ? 'mobile' : 'pc';
+          matchmaker.createCustomRoom({ id: playerId, name, platform, ws });
           break;
         }
 
         case 'JOIN_CUSTOM_ROOM': {
           const name = sanitizeName(msg.name);
-          matchmaker.joinCustomRoom(msg.roomCode, { id: playerId, name, ws });
+          const platform = msg.platform === 'mobile' ? 'mobile' : 'pc';
+          matchmaker.joinCustomRoom(msg.roomCode, { id: playerId, name, platform, ws });
           break;
         }
 

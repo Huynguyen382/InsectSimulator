@@ -5,13 +5,25 @@ const GameRoom = require('./GameRoom');
 
 class Matchmaker {
   constructor() {
-    this.queue = [];
+    // Separate matchmaking queues per platform (PC vs Mobile never mix)
+    this.queues = {
+      pc: [],
+      mobile: []
+    };
+    this.queueTimers = {
+      pc: null,
+      mobile: null
+    };
+
     this.rooms = new Map();
     this.customRooms = new Map();
     this.playerToRoom = new Map(); // O(1) instantaneous lookup map for 100+ players
     this.nextRoomId = 1;
-    this.queueTimer = null;
     this.lobbySockets = new Set(); // Sockets currently browsing lobby
+  }
+
+  normalizePlatform(platform) {
+    return platform === 'mobile' ? 'mobile' : 'pc';
   }
 
   registerLobbySocket(ws) {
@@ -53,6 +65,7 @@ class Matchmaker {
       list.push({
         code: room.code,
         hostName: host ? host.name : 'Unknown',
+        platform: room.platform || 'pc',
         playerCount: room.players.length,
         maxPlayers: CONFIG.MATCH_SIZE,
         blueCount,
@@ -66,8 +79,10 @@ class Matchmaker {
   startSoloPractice(playerInfo) {
     this.removePlayerFromAllLobbies(playerInfo.id);
 
+    const platform = this.normalizePlatform(playerInfo.platform);
     const roomId = this.nextRoomId++;
     const humanPlayer = new Player(playerInfo.id, playerInfo.name, 0, playerInfo.ws, false);
+    humanPlayer.platform = platform;
 
     // Create 5 Bots to form a full 3v3 simulation (2 blue allies, 3 red enemies)
     const bots = [
@@ -80,6 +95,7 @@ class Matchmaker {
 
     const allParticipants = [humanPlayer, ...bots];
     const room = new GameRoom(roomId, allParticipants, true, (id) => this.removeRoom(id));
+    room.platform = platform;
     this.rooms.set(roomId, room);
     allParticipants.forEach(p => this.playerToRoom.set(p.id, room));
 
@@ -90,6 +106,7 @@ class Matchmaker {
         roomId,
         playerId: humanPlayer.id,
         team: humanPlayer.team,
+        platform,
         isPractice: true,
         trees: room.treeObstacles,
         foodSpots: room.foodSpots,
@@ -101,41 +118,48 @@ class Matchmaker {
     return room;
   }
 
-  // --- AUTOMATIC 3V3 QUEUE MATCHMAKING ---
+  // --- AUTOMATIC 3V3 QUEUE MATCHMAKING (SEPARATE PC & MOBILE QUEUES) ---
   enqueue(playerInfo) {
     this.removePlayerFromAllLobbies(playerInfo.id);
 
-    this.queue.push(playerInfo);
-    this.notifyQueueStatus();
+    const platform = this.normalizePlatform(playerInfo.platform);
+    playerInfo.platform = platform;
 
-    // If queue is full (6 players), start match immediately
-    if (this.queue.length >= CONFIG.MATCH_SIZE) {
-      this.launchMatchFromQueue();
+    this.queues[platform].push(playerInfo);
+    this.notifyQueueStatus(platform);
+
+    // If queue is full (6 players on this platform), start match immediately
+    if (this.queues[platform].length >= CONFIG.MATCH_SIZE) {
+      this.launchMatchFromQueue(platform);
       return;
     }
 
-    // Auto-fill bots countdown if solo
-    if (!this.queueTimer) {
-      this.queueTimer = setTimeout(() => {
-        this.queueTimer = null;
-        if (this.queue.length > 0) {
-          this.launchMatchWithBots();
+    // Auto-fill bots countdown if waiting
+    if (!this.queueTimers[platform]) {
+      this.queueTimers[platform] = setTimeout(() => {
+        this.queueTimers[platform] = null;
+        if (this.queues[platform].length > 0) {
+          this.launchMatchWithBots(platform);
         }
       }, CONFIG.QUEUE_AUTOSTART_TIMEOUT_MS);
     }
   }
 
-  launchMatchWithBots() {
-    if (this.queue.length === 0) return;
+  launchMatchWithBots(platform) {
+    if (!platform || !this.queues[platform]) platform = 'pc';
+    const queue = this.queues[platform];
+    if (queue.length === 0) return;
 
     const roomId = this.nextRoomId++;
-    const humans = this.queue.splice(0, CONFIG.MATCH_SIZE);
+    const humans = queue.splice(0, CONFIG.MATCH_SIZE);
 
     const playersList = [];
     // Assign humans to teams alternately
     humans.forEach((h, idx) => {
       const team = idx % 2 === 0 ? 0 : 1;
-      playersList.push(new Player(h.id, h.name, team, h.ws, false));
+      const player = new Player(h.id, h.name, team, h.ws, false);
+      player.platform = platform;
+      playersList.push(player);
     });
 
     // Fill remaining slots with Bots to reach 6 players (3v3)
@@ -153,6 +177,7 @@ class Matchmaker {
     }
 
     const room = new GameRoom(roomId, playersList, false, (id) => this.removeRoom(id));
+    room.platform = platform;
     this.rooms.set(roomId, room);
     playersList.forEach(p => this.playerToRoom.set(p.id, room));
 
@@ -164,6 +189,7 @@ class Matchmaker {
           roomId,
           playerId: p.id,
           team: p.team,
+          platform,
           isPractice: false,
           trees: room.treeObstacles,
           foodSpots: room.foodSpots,
@@ -174,30 +200,38 @@ class Matchmaker {
     });
   }
 
-  launchMatchFromQueue() {
-    if (this.queueTimer) {
-      clearTimeout(this.queueTimer);
-      this.queueTimer = null;
+  launchMatchFromQueue(platform) {
+    if (this.queueTimers[platform]) {
+      clearTimeout(this.queueTimers[platform]);
+      this.queueTimers[platform] = null;
     }
-    this.launchMatchWithBots();
+    this.launchMatchWithBots(platform);
   }
 
   dequeue(playerId) {
-    this.queue = this.queue.filter(p => p.id !== playerId);
-    this.notifyQueueStatus();
-    if (this.queue.length === 0 && this.queueTimer) {
-      clearTimeout(this.queueTimer);
-      this.queueTimer = null;
-    }
+    ['pc', 'mobile'].forEach(platform => {
+      const prevLen = this.queues[platform].length;
+      this.queues[platform] = this.queues[platform].filter(p => p.id !== playerId);
+      if (this.queues[platform].length !== prevLen) {
+        this.notifyQueueStatus(platform);
+        if (this.queues[platform].length === 0 && this.queueTimers[platform]) {
+          clearTimeout(this.queueTimers[platform]);
+          this.queueTimers[platform] = null;
+        }
+      }
+    });
   }
 
-  notifyQueueStatus() {
-    this.queue.forEach((p, idx) => {
+  notifyQueueStatus(platform) {
+    if (!platform || !this.queues[platform]) return;
+    const queue = this.queues[platform];
+    queue.forEach((p, idx) => {
       if (p.ws && p.ws.readyState === 1) {
         p.ws.send(JSON.stringify({
           type: 'QUEUE_STATUS',
+          platform,
           position: idx + 1,
-          total: this.queue.length
+          total: queue.length
         }));
       }
     });
@@ -215,10 +249,12 @@ class Matchmaker {
   createCustomRoom(playerInfo) {
     this.removePlayerFromAllLobbies(playerInfo.id);
 
+    const platform = this.normalizePlatform(playerInfo.platform);
     const code = this.generateRoomCode();
     const room = {
       code,
       hostId: playerInfo.id,
+      platform,
       players: [
         { id: playerInfo.id, name: playerInfo.name || 'FlyPilot', ws: playerInfo.ws, team: 0, isHost: true }
       ]
@@ -233,6 +269,7 @@ class Matchmaker {
   joinCustomRoom(roomCode, playerInfo) {
     this.removePlayerFromAllLobbies(playerInfo.id);
 
+    const platform = this.normalizePlatform(playerInfo.platform);
     const code = (roomCode || '').toString().trim();
     const room = this.customRooms.get(code);
 
@@ -241,6 +278,19 @@ class Matchmaker {
         playerInfo.ws.send(JSON.stringify({
           type: 'CUSTOM_ROOM_ERROR',
           message: `Không tìm thấy phòng với mã "${code}"!`
+        }));
+      }
+      return null;
+    }
+
+    // Platform validation: Mobile can only join Mobile rooms, PC can only join PC rooms
+    if (room.platform && room.platform !== platform) {
+      if (playerInfo.ws && playerInfo.ws.readyState === 1) {
+        const roomPlatName = room.platform === 'mobile' ? 'Mobile' : 'PC';
+        const userPlatName = platform === 'mobile' ? 'Mobile' : 'PC';
+        playerInfo.ws.send(JSON.stringify({
+          type: 'CUSTOM_ROOM_ERROR',
+          message: `Phòng này chỉ dành cho người chơi [${roomPlatName}]! Bạn đang dùng [${userPlatName}].`
         }));
       }
       return null;
@@ -398,9 +448,14 @@ class Matchmaker {
       botCounter++;
     }
 
+    const platform = room.platform || 'pc';
     const gameRoom = new GameRoom(roomId, playersList, false, (id) => this.removeRoom(id));
+    gameRoom.platform = platform;
     this.rooms.set(roomId, gameRoom);
-    playersList.forEach(p => this.playerToRoom.set(p.id, gameRoom));
+    playersList.forEach(p => {
+      p.platform = platform;
+      this.playerToRoom.set(p.id, gameRoom);
+    });
 
     // Notify all human players
     playersList.forEach(p => {
@@ -410,6 +465,7 @@ class Matchmaker {
           roomId,
           playerId: p.id,
           team: p.team,
+          platform,
           isPractice: false,
           trees: gameRoom.treeObstacles,
           foodSpots: gameRoom.foodSpots,
@@ -428,6 +484,7 @@ class Matchmaker {
       type: 'CUSTOM_ROOM_UPDATE',
       roomCode: room.code,
       hostId: room.hostId,
+      platform: room.platform || 'pc',
       players: room.players.map(p => ({
         id: p.id,
         name: p.name,

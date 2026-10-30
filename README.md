@@ -17,11 +17,23 @@
 | **Phím H / F1** | Bật / Tắt bảng Hướng dẫn chiến thuật & phím tắt ngay trong game |
 | **Phím ESC** | Tạm dừng chuột / Mở bảng Xác nhận Thoát trận |
 | **Phím F8** | Đổi nhanh chất lượng đồ họa rừng: Siêu mượt ⚡ / Cân bằng ⚖️ / Đầy đủ 🌳 |
+| **📱 Cần gạt ảo (Joystick)** | Di chuyển bay lượn 360° linh hoạt trên màn hình cảm ứng điện thoại |
+| **📱 Vuốt màn hình bên phải** | Xoay góc nhìn camera 360° ngắm bắn mượt mà |
+| **📱 Nút cảm ứng ảo** | Bắn đạn 🎯, Bay lên cao ▲ (Space), Hạ sát đất ▼ (Shift) |
 | **Bộ gõ Tiếng Việt** | Tích hợp công nghệ chống kẹt phím, thoải mái bật Unikey/EVKey gõ Telex/VNI mà không bị trôi phím! |
 
 ---
 
-### 2. 🏰 Mục Tiêu & Luật Chơi 3v3
+### 2. 📱 Ghép Trận Cùng Nền Tảng (Mobile-Mobile & PC-PC)
+- **Tự động nhận diện thiết bị**: Game tự động phát hiện thiết bị di động (màn hình cảm ứng) hoặc PC (chuột + bàn phím). Người chơi cũng có thể chủ động chuyển đổi chế độ ở sảnh chính.
+- **Tách biệt hàng đợi tuyệt đối**: 
+  - Hàng đợi **Mobile** chỉ ghép trận với người chơi **Mobile** (+ Bot AI).
+  - Hàng đợi **PC** chỉ ghép trận với người chơi **PC** (+ Bot AI).
+- **Rào cản Custom Room**: Phòng do người chơi PC tạo chỉ cho phép người chơi PC tham gia; phòng Mobile chỉ cho phép người chơi Mobile tham gia.
+
+---
+
+### 3. 🏰 Mục Tiêu & Luật Chơi 3v3
 - **Phá Hủy Cứ Điểm Đối Phương (1000 HP) — THẮNG NGAY LẬP TỨC**:
   - Mỗi phe (Xanh vs Đỏ) sở hữu 1 Cứ Điểm năng lượng phát sáng tại căn cứ.
   - Đội nào tập trung hỏa lực bắn nổ Cứ Điểm đối phương trước sẽ **CHIẾN THẮNG TUYỆT ĐỐI NGAY LẬP TỨC**!

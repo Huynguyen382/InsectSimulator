@@ -2096,3 +2096,567 @@ body, html {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
 }
+
+/* ==========================================================================
+   MOBILE PLATFORM SELECTOR (LOBBY)
+   ========================================================================== */
+.platform-card-box {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.platform-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.platform-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+
+.platform-desc {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.platform-btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-platform {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 9px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  touch-action: manipulation;
+}
+
+.btn-platform:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #f8fafc;
+}
+
+.btn-platform.active {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.4), rgba(14, 165, 233, 0.2));
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+}
+
+.room-plat-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.room-plat-badge.mobile {
+  background: rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(192, 132, 252, 0.6);
+  color: #c084fc;
+}
+
+.room-plat-badge.pc {
+  background: rgba(14, 165, 233, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  color: #38bdf8;
+}
+
+/* ==========================================================================
+   MOBILE VIRTUAL CONTROLS (JOYSTICK, LOOK ZONE & ACTION BUTTONS)
+   ========================================================================== */
+.mobile-controls-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 45;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 1. Touch Joystick Zone (Góc trái dưới) */
+.touch-joystick-zone {
+  position: absolute;
+  bottom: 25px;
+  left: 25px;
+  width: 140px;
+  height: 140px;
+  pointer-events: auto;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.joystick-base {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(15, 23, 42, 0.5) 40%, rgba(2, 132, 199, 0.2) 100%);
+  border: 2px solid rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3), inset 0 0 14px rgba(56, 189, 248, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.joystick-base.active {
+  border-color: #38bdf8;
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.55), inset 0 0 18px rgba(56, 189, 248, 0.35);
+}
+
+.joystick-stick {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #7dd3fc 0%, #0284c7 60%, #0369a1 100%);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 10px rgba(56, 189, 248, 0.6);
+  pointer-events: none;
+  transform: translate(0px, 0px);
+  will-change: transform;
+}
+
+/* 2. Touch Look Zone (Nửa màn hình bên phải để vuốt xoay 360 độ) */
+.touch-look-zone {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  width: 52%;
+  height: calc(100% - 160px);
+  pointer-events: auto;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 20px;
+}
+
+.touch-look-hint {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.28);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.35);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+/* 3. Mobile Action Buttons (Góc phải dưới) */
+.mobile-action-buttons {
+  position: absolute;
+  bottom: 22px;
+  right: 22px;
+  pointer-events: auto;
+  display: grid;
+  grid-template-areas:
+    ".       btn-up"
+    "btn-down btn-shoot";
+  grid-template-columns: auto auto;
+  gap: 12px;
+  align-items: center;
+  justify-items: center;
+}
+
+.btn-touch-action {
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease, filter 0.08s ease;
+}
+
+.btn-touch-action:active {
+  transform: scale(0.92);
+}
+
+/* Nút Bay lên cao (Space) */
+.btn-touch-up {
+  grid-area: btn-up;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(2, 132, 199, 0.9));
+  border: 2px solid rgba(56, 189, 248, 0.8);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.5);
+}
+
+.btn-touch-up .btn-touch-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.btn-touch-up .btn-touch-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+/* Nút Hạ sát đất (Shift / C) */
+.btn-touch-down {
+  grid-area: btn-down;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba(51, 65, 85, 0.9), rgba(71, 85, 105, 0.9));
+  border: 2px solid rgba(148, 163, 184, 0.8);
+  color: #f1f5f9;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.5);
+}
+
+.btn-touch-down .btn-touch-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.btn-touch-down .btn-touch-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+/* Nút BẮN ĐẠN (To tròn, nổi bật, màu đỏ rực) */
+.btn-touch-shoot {
+  grid-area: btn-shoot;
+  width: 78px;
+  height: 78px;
+  background: radial-gradient(circle at 35% 35%, #f87171 0%, #dc2626 65%, #991b1b 100%);
+  border: 2.5px solid #fecaca;
+  color: #ffffff;
+  box-shadow: 0 0 22px rgba(239, 68, 68, 0.65), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.btn-touch-shoot:active {
+  background: radial-gradient(circle at 35% 35%, #fca5a5 0%, #ef4444 65%, #b91c1c 100%);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.9);
+}
+
+.btn-touch-shoot .btn-touch-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.btn-touch-shoot .btn-touch-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE MEDIA QUERIES (WIDTH <= 900px HOẶC HEIGHT <= 600px)
+   ========================================================================== */
+@media (max-width: 900px), (max-height: 600px) {
+  /* Performance Badge: Gọn gàng hơn */
+  .perf-badge {
+    top: 6px;
+    left: 6px;
+    font-size: 0.68rem;
+    padding: 3px 6px;
+  }
+  .fps-target-pill, .graphic-mode-pill {
+    padding: 1px 5px;
+    font-size: 10px;
+    margin: 0 2px;
+  }
+
+  /* Lobby Card */
+  .lobby-card {
+    width: 95vw;
+    max-width: 520px;
+    max-height: 94vh;
+    padding: 14px 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+
+  .game-title {
+    font-size: 1.45rem;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+
+  .subtitle {
+    font-size: 0.78rem;
+    margin-bottom: 10px;
+  }
+
+  .preload-box {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+  }
+
+  .quality-card-box {
+    padding: 8px 10px;
+    margin-bottom: 10px;
+  }
+
+  .btn-quality {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+
+  .input-group {
+    margin-bottom: 10px;
+  }
+
+  .input-group input {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .lobby-actions {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+
+  .btn-lobby-guide {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    margin-bottom: 10px;
+  }
+
+  .custom-room-card-box {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .room-action-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .join-room-group {
+    width: 100%;
+  }
+
+  .btn-room {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .instructions {
+    padding: 10px;
+    font-size: 0.75rem;
+  }
+
+  .instructions h3 {
+    font-size: 0.78rem;
+    margin-bottom: 6px;
+  }
+
+  /* In-Game Top HUD */
+  .hud-top-right-group {
+    top: 8px;
+    right: 8px;
+    gap: 6px;
+  }
+
+  .btn-hud-control {
+    padding: 5px 9px;
+    font-size: 0.72rem;
+    border-radius: 6px;
+  }
+
+  .top-tactical-bar {
+    top: 8px;
+    width: 96vw;
+    max-width: 580px;
+    gap: 6px;
+  }
+
+  .base-wing {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .wing-tag {
+    font-size: 0.68rem;
+  }
+
+  .wing-hp {
+    font-size: 0.65rem;
+  }
+
+  .wing-score {
+    font-size: 1.15rem;
+    min-width: 24px;
+  }
+
+  .match-timer-val {
+    font-size: 1.05rem;
+  }
+
+  .objective-badge .team-badge {
+    font-size: 0.65rem;
+    padding: 1px 6px;
+  }
+
+  /* Food Form Survival Indicator */
+  .food-form-hud {
+    top: 60px;
+    padding: 8px 12px;
+    min-width: 260px;
+  }
+
+  .food-form-badge {
+    font-size: 0.78rem;
+  }
+
+  .food-form-tagline {
+    font-size: 0.68rem;
+  }
+
+  /* Kill Feed */
+  .kill-feed {
+    top: 65px;
+    left: 10px;
+    max-width: 240px;
+  }
+
+  .kill-item {
+    font-size: 0.68rem;
+    padding: 3px 8px;
+  }
+
+  /* In-game Bottom HUD: Dồn gọn vào trung tâm giữa hai bàn tay */
+  .bottom-hud {
+    bottom: 8px;
+    width: min(88vw, 360px);
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.75);
+    border-radius: 10px;
+  }
+
+  .hud-panel {
+    gap: 2px;
+  }
+
+  .panel-label {
+    font-size: 0.65rem;
+  }
+
+  .bar-container {
+    height: 7px;
+  }
+
+  .ammo-pills {
+    height: 6px;
+    gap: 1.5px;
+  }
+
+  /* Tactical Radio Emotes: Thu gọn hoặc dạng icon */
+  .tactical-radio-bar {
+    bottom: 85px;
+    gap: 4px;
+    transform: translateX(-50%) scale(0.85);
+  }
+
+  .radio-btn {
+    padding: 4px 8px;
+    font-size: 0.68rem;
+  }
+
+  /* Modals: Hướng dẫn, Thoát trận, GameOver, Nâng cấp */
+  .guide-modal-card {
+    width: 95vw;
+    max-width: 580px;
+    max-height: 92vh;
+  }
+
+  .guide-keys-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .key-card {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .key-badge {
+    font-size: 0.75rem;
+    padding: 3px 7px;
+  }
+
+  .key-desc {
+    font-size: 0.75rem;
+  }
+
+  .confirm-leave-card {
+    width: 92vw;
+    max-width: 420px;
+    padding: 18px 20px;
+  }
+
+  .gameover-card {
+    width: 95vw;
+    max-width: 580px;
+    max-height: 94vh;
+    padding: 16px;
+  }
+
+  .scoreboard-table th, .scoreboard-table td {
+    padding: 5px 6px;
+    font-size: 0.72rem;
+  }
+
+  .custom-room-modal-card {
+    width: 95vw;
+    max-width: 580px;
+    max-height: 92vh;
+    padding: 16px;
+  }
+
+  .teams-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vs-divider {
+    margin: 4px 0;
+  }
+}
+

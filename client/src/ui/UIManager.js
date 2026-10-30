@@ -457,11 +457,17 @@ export class UIManager {
     }
 
     rooms.forEach(r => {
+      const isMobileRoom = r.platform === 'mobile';
+      const platBadge = isMobileRoom 
+        ? '<span class="room-plat-badge mobile">📱 Mobile</span>'
+        : '<span class="room-plat-badge pc">💻 PC</span>';
+
       const item = document.createElement('div');
       item.className = 'open-room-item';
       item.innerHTML = `
         <div class="room-item-info">
           <span class="room-item-code">#${r.code}</span>
+          ${platBadge}
           <span class="room-item-host">👑 ${r.hostName}</span>
           <span class="room-item-count">(${r.playerCount}/${r.maxPlayers})</span>
         </div>
@@ -576,8 +582,8 @@ export class UIManager {
   }
 
   // --- CUSTOM ROOM MODAL RENDERING ---
-  showCustomRoomModal(roomCode, players, myPlayerId, hostId) {
-    this.dom.displayRoomCode.innerText = roomCode;
+  showCustomRoomModal(roomCode, players, myPlayerId, hostId, platform = 'pc') {
+    this.dom.displayRoomCode.innerText = `${roomCode} (${platform === 'mobile' ? '📱 Mobile' : '💻 PC'})`;
     this.dom.roomErrorMsg.classList.add('hidden');
 
     const bluePlayers = players.filter(p => p.team === 0);
