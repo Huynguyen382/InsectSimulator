@@ -606,11 +606,61 @@ class Game {
 
     window.addEventListener('click', () => {
       if (this.uiManager.isConfirmLeaveOpen()) return;
+      if (this.uiManager.isGuideModalOpen()) return;
       if (this.uiManager.dom.gameoverModal && !this.uiManager.dom.gameoverModal.classList.contains('hidden')) return;
       if (this.currentRoomId && !this.inputController.isPointerLocked && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
         this.inputController.requestLock();
       }
     });
+
+    // Toggle Guide Modal Helper
+    const toggleGuide = () => {
+      if (this.uiManager.isGuideModalOpen()) {
+        this.uiManager.hideGuideModal();
+        if (this.currentRoomId && !this.uiManager.isConfirmLeaveOpen() && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
+          this.inputController.requestLock();
+        }
+      } else {
+        if (this.currentRoomId) {
+          this.inputController.exitLock();
+        }
+        this.uiManager.showGuideModal();
+      }
+    };
+
+    if (this.uiManager.dom.btnOpenGuide) {
+      this.uiManager.dom.btnOpenGuide.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleGuide();
+      });
+    }
+
+    if (this.uiManager.dom.btnInGameGuide) {
+      this.uiManager.dom.btnInGameGuide.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleGuide();
+      });
+    }
+
+    if (this.uiManager.dom.btnCloseGuide) {
+      this.uiManager.dom.btnCloseGuide.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.uiManager.hideGuideModal();
+        if (this.currentRoomId && !this.uiManager.isConfirmLeaveOpen() && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
+          this.inputController.requestLock();
+        }
+      });
+    }
+
+    if (this.uiManager.dom.btnCloseGuideX) {
+      this.uiManager.dom.btnCloseGuideX.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.uiManager.hideGuideModal();
+        if (this.currentRoomId && !this.uiManager.isConfirmLeaveOpen() && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
+          this.inputController.requestLock();
+        }
+      });
+    }
 
     // In-Game Leave Match & Confirm Modal Listeners
     if (this.uiManager.dom.btnInGameLeave) {
@@ -636,9 +686,30 @@ class Game {
       });
     }
 
-    // Toggle Confirm Leave via ESC key during match
+    // Keydown handlers: ESC (Cancel / Leave) & H / F1 (Help Guide)
     window.addEventListener('keydown', (e) => {
+      // Bấm H hoặc F1 để bật/tắt nhanh hướng dẫn
+      if (e.key === 'h' || e.key === 'H' || e.code === 'KeyH' || e.key === 'F1') {
+        const active = document.activeElement;
+        const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') && active.id !== 'unikey-shield';
+        if (!isTyping) {
+          e.preventDefault();
+          toggleGuide();
+          return;
+        }
+      }
+
+      // Bấm Escape: Đóng hướng dẫn trước, hoặc mở bảng xác nhận thoát trận
       if (e.key === 'Escape' || e.code === 'Escape') {
+        if (this.uiManager.isGuideModalOpen()) {
+          e.preventDefault();
+          this.uiManager.hideGuideModal();
+          if (this.currentRoomId && !this.uiManager.isConfirmLeaveOpen() && this.uiManager.dom.levelupModal.classList.contains('hidden')) {
+            this.inputController.requestLock();
+          }
+          return;
+        }
+
         if (this.currentRoomId) {
           if (this.uiManager.isConfirmLeaveOpen()) {
             this.uiManager.hideConfirmLeave();

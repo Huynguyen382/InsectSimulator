@@ -299,8 +299,47 @@ server.on('error', (err) => {
   }
 });
 
+// --- KEEP-ALIVE SELF-PING CHO ONRENDER (Ngăn ngủ đông sau 15 phút không có request) ---
+let keepAliveTimer = null;
+
+function startKeepAliveSelfPing() {
+  const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 phút (Onrender sleep sau 15 phút không có request)
+
+  // URL ưu tiên: RENDER_EXTERNAL_URL (Render tự động cấp khi deploy) -> APP_URL / SERVER_URL -> fallback localhost
+  const rawUrl = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL || process.env.SERVER_URL || `http://localhost:${CONFIG.PORT}`;
+  const healthEndpoint = `${rawUrl.replace(/\/+$/, '')}/health`;
+
+  console.log(`[KeepAlive] ⏱️ Tự động ping mỗi 14 phút để giữ server online (Endpoint: ${healthEndpoint})`);
+
+  const doPing = async () => {
+    try {
+      const res = await fetch(healthEndpoint, {
+        headers: { 'User-Agent': 'InsectSimulator-KeepAlive/1.0' }
+      });
+      const data = await res.json().catch(() => ({}));
+      console.log(`[KeepAlive] 💓 Self-ping thành công tới ${healthEndpoint} (HTTP ${res.status}, uptime: ${data.uptime || 0}s, lúc ${new Date().toLocaleTimeString('vi-VN')})`);
+    } catch (err) {
+      console.warn(`[KeepAlive] ⚠️ Self-ping cảnh báo: ${err.message}`);
+    }
+  };
+
+  // Thiết lập interval 14 phút
+  keepAliveTimer = setInterval(doPing, PING_INTERVAL_MS);
+
+  // Không block process khi exit
+  if (keepAliveTimer.unref) keepAliveTimer.unref();
+}
+
+function stopKeepAliveSelfPing() {
+  if (keepAliveTimer) {
+    clearInterval(keepAliveTimer);
+    keepAliveTimer = null;
+  }
+}
+
 function gracefulShutdown() {
   console.log('\n🛑 Đang đóng Insect Simulator Server...');
+  stopKeepAliveSelfPing();
   clearInterval(heartbeatInterval);
   wss.close(() => {
     server.close(() => {
@@ -320,4 +359,5 @@ server.listen(CONFIG.PORT, () => {
   console.log(` Local URL: http://localhost:${CONFIG.PORT}`);
   console.log(` REST API: http://localhost:${CONFIG.PORT}/api/status`);
   console.log(`===============================================`);
+  startKeepAliveSelfPing();
 });

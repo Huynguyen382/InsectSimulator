@@ -93,7 +93,14 @@ export class UIManager {
       btnInGameLeave: document.getElementById('btn-in-game-leave'),
       confirmLeaveModal: document.getElementById('confirm-leave-modal'),
       btnCancelLeave: document.getElementById('btn-cancel-leave'),
-      btnConfirmLeave: document.getElementById('btn-confirm-leave')
+      btnConfirmLeave: document.getElementById('btn-confirm-leave'),
+
+      // Game Guide UI Elements
+      btnOpenGuide: document.getElementById('btn-open-guide'),
+      btnInGameGuide: document.getElementById('btn-in-game-guide'),
+      guideModal: document.getElementById('guide-modal'),
+      btnCloseGuide: document.getElementById('btn-close-guide'),
+      btnCloseGuideX: document.getElementById('btn-close-guide-x')
     };
 
     this.initAmmoPills(20);
@@ -372,6 +379,7 @@ export class UIManager {
     if (this.dom.customRoomModal) this.dom.customRoomModal.classList.add('hidden');
     if (this.dom.gameoverModal) this.dom.gameoverModal.classList.add('hidden');
     if (this.dom.confirmLeaveModal) this.dom.confirmLeaveModal.classList.add('hidden');
+    if (this.dom.guideModal) this.dom.guideModal.classList.add('hidden');
     this.dom.gameHud.classList.remove('hidden');
   }
 
@@ -383,6 +391,7 @@ export class UIManager {
     if (this.dom.levelupModal) this.dom.levelupModal.classList.add('hidden');
     if (this.dom.respawnOverlay) this.dom.respawnOverlay.classList.add('hidden');
     if (this.dom.confirmLeaveModal) this.dom.confirmLeaveModal.classList.add('hidden');
+    if (this.dom.guideModal) this.dom.guideModal.classList.add('hidden');
     this.dom.lobbyScreen.classList.remove('hidden');
   }
 
@@ -400,6 +409,22 @@ export class UIManager {
 
   isConfirmLeaveOpen() {
     return Boolean(this.dom.confirmLeaveModal && !this.dom.confirmLeaveModal.classList.contains('hidden'));
+  }
+
+  showGuideModal() {
+    if (this.dom.guideModal) {
+      this.dom.guideModal.classList.remove('hidden');
+    }
+  }
+
+  hideGuideModal() {
+    if (this.dom.guideModal) {
+      this.dom.guideModal.classList.add('hidden');
+    }
+  }
+
+  isGuideModalOpen() {
+    return Boolean(this.dom.guideModal && !this.dom.guideModal.classList.contains('hidden'));
   }
 
   isLevelUpOpen() {

@@ -135,6 +135,11 @@
         </button>
       </div>
 
+      <!-- Quick Guide Button in Lobby -->
+      <button type="button" id="btn-open-guide" class="btn-lobby-guide" title="Xem hướng dẫn chi tiết cách chơi, bảng phím tắt và chiến thuật (Phím H)">
+        📖 HƯỚNG DẪN CHIẾN ĐẤU & PHÍM TẮT [H]
+      </button>
+
       <!-- Custom Room Section (Chủ Động Tạo Phòng & Ghép Bạn Bè) -->
       <div class="custom-room-card-box">
         <div class="room-section-header">
@@ -171,17 +176,16 @@
       </div>
 
       <div class="instructions">
-        <h3>HƯỚNG DẪN CHIẾN ĐẤU & MỤC TIÊU:</h3>
+        <h3>HƯỚNG DẪN CHIẾN ĐẤU & MỤC TIÊU NHANH:</h3>
         <ul>
-          <li><b>🏰 Mục tiêu Cứ Điểm (1000 HP)</b>: Mỗi phe có 1 cứ điểm phát sáng. <b>Phá hủy cứ điểm đối thủ để chiến thắng ngay lập tức!</b> Hết giờ phe nào còn nhiều máu cứ điểm hơn sẽ thắng!</li>
+          <li><b>🏰 Mục tiêu Cứ Điểm (1000 HP)</b>: Mỗi phe có 1 Cứ Điểm phát sáng. <b>Phá hủy Cứ Điểm đối thủ để CHIẾN THẮNG NGAY LẬP TỨC!</b></li>
+          <li><b>🎯 Điểm Hạ Gục (15 Kills)</b>: Phe đầu tiên đạt 15 mạng hạ gục sẽ giành chiến thắng.</li>
+          <li><b>⚡ Băng Đạn & Nạp Đạn</b>: Khởi đầu & hồi sinh có sẵn <b>20 viên đạn</b>. Khi hết đạn, bay lại gần bãi thức ăn (💩 cột sáng vàng) trong 2s để nạp đầy 20 viên và hồi phục <b>+35 HP</b>!</li>
+          <li><b>💩 Dạng Thức Ăn Trốn Thoát</b>: Khi cạn máu, bạn biến thành đống thức ăn (💩) trốn trong 10 giây. Trốn thành công sẽ <b>hồi sinh làm ruồi ngay tại chỗ với 70% HP</b>! Tránh bị đối phương nạp đạn 3 lần!</li>
+          <li><b>⌨️ Phím Điều Khiển</b>: WASD / Mũi tên (Bay theo hướng nhìn), Space (Bay lên cao), Shift/C (Hạ sát đất), Chuột 360° (Nhắm bắn), Chuột trái (Bắn đạn - tự động hỗ trợ hút đạn trong 10m).</li>
+          <li><b>📖 Phím H / F1</b>: Bật / Tắt bảng hướng dẫn chi tiết bất kỳ lúc nào (cả ở sảnh và trong trận).</li>
+          <li><b>🚪 Phím ESC</b>: Tạm dừng / Mở bảng Xác nhận Thoát trận.</li>
           <li><b>⌨️ Hỗ trợ Unikey / EVKey</b>: Thoải mái bật Telex/VNI khi chơi, hệ thống chống kẹt phím tự động bảo vệ WASD 100% mượt mà!</li>
-          <li><b>Cơ chế đạn</b>: Ruồi khởi đầu với <b>0 viên đạn</b>. BẮT BUỘC phải bay đến bãi thức ăn (💩) ăn no mới có 20 viên đạn để bắn!</li>
-          <li><b>Bãi thức ăn (💩)</b>: Bay lại gần cột sáng vàng trong 2s để nạp 20 viên đạn. Thức ăn sẽ <b>tự biến mất sau 22s</b> nếu không ai ăn, và hồi lại sau 12s.</li>
-          <li><b>WASD / Phím mũi tên</b>: Bay theo hướng nhìn 3D mượt mà không độ trễ</li>
-          <li><b>Space / Shift</b>: Bay vút lên tán cây / Hạ sát mặt đường</li>
-          <li><b>Chuột</b>: Chuột phải quay phải, chuột trái quay trái (Chuẩn TPS/FPS)</li>
-          <li><b>Chuột trái</b>: Bắn đạn tiêu hao (Đạn tự điều chỉnh hướng 45% về kẻ địch trong 10m)</li>
-          <li><b>Rào chắn</b>: Giới hạn khu rừng, ruồi không thể bay vượt ra khỏi bản đồ</li>
           <li><b>Đồng đội</b>: Màu Xanh | <b>Kẻ địch</b>: Màu Đỏ (Tắt Friendly Fire)</li>
         </ul>
       </div>
@@ -249,10 +253,15 @@
 
   <!-- HUD IN-GAME -->
   <div id="game-hud" class="hud-layer hidden">
-    <!-- In-Game Leave Match Button (Top Right) -->
-    <button id="btn-in-game-leave" class="btn-hud-leave" title="Rời trận đấu về sảnh chính (hoặc bấm Esc)">
-      🚪 Thoát trận [ESC]
-    </button>
+    <!-- Top Right HUD Action Controls -->
+    <div class="hud-top-right-group">
+      <button id="btn-in-game-guide" class="btn-hud-control btn-hud-guide" title="Xem hướng dẫn chơi, bảng phím tắt & luật 3v3 (Bấm phím H)">
+        📖 Hướng dẫn [H]
+      </button>
+      <button id="btn-in-game-leave" class="btn-hud-control btn-hud-leave" title="Rời trận đấu về sảnh chính (hoặc bấm Esc)">
+        🚪 Thoát trận [ESC]
+      </button>
+    </div>
 
     <!-- Boundary Warning Banner (Sleek Compact Top Pill) -->
     <div id="boundary-warning" class="boundary-warning hidden">
@@ -451,6 +460,169 @@
       <div class="confirm-leave-actions">
         <button id="btn-cancel-leave" class="btn-utility">⚔️ TIẾP TỤC CHIẾN ĐẤU</button>
         <button id="btn-confirm-leave" class="btn-danger">🚪 RỜI TRẬN ĐẤU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Guide / Help Modal -->
+  <div id="guide-modal" class="overlay-screen hidden">
+    <div class="guide-modal-card">
+      <div class="guide-header">
+        <div class="guide-title-wrap">
+          <span class="guide-icon">📖</span>
+          <h2 class="guide-title">HƯỚNG DẪN CHIẾN ĐẤU & LUẬT CHƠI 3V3</h2>
+        </div>
+        <button id="btn-close-guide-x" class="btn-guide-close-x" title="Đóng bảng hướng dẫn (H hoặc Esc)">✖</button>
+      </div>
+
+      <div class="guide-content-scroll">
+        <!-- Section 1: Phím bấm -->
+        <div class="guide-section">
+          <h3 class="guide-sec-title">🎮 1. HỆ THỐNG PHÍM ĐIỀU KHIỂN & GÓC NHÌN:</h3>
+          <div class="guide-keys-grid">
+            <div class="key-card">
+              <span class="key-badge">W / A / S / D</span>
+              <span class="key-desc">Bay Tiến / Lùi / Lượn Trái / Lượn Phải (Hỗ trợ phím Mũi tên & bộ gõ Unikey)</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">Space (Phím cách)</span>
+              <span class="key-desc">Bay vút lên cao / Tán cây (Nâng cao độ quan sát chiến trường)</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">Shift / Phím C</span>
+              <span class="key-desc">Hạ độ cao / Bay lượn là là sát mặt đường rừng</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">Di chuyển Chuột</span>
+              <span class="key-desc">Xoay đổi góc nhìn 360°, ngắm mục tiêu tự do không điểm mù</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">Chuột Trái</span>
+              <span class="key-desc">Bắn đạn không chiến (Tự động hỗ trợ khóa & hút đạn trong 10m)</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">Phím H / F1</span>
+              <span class="key-desc">Bật / Tắt bảng hướng dẫn chi tiết này bất cứ lúc nào</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">Phím ESC</span>
+              <span class="key-desc">Tạm dừng chuột / Mở bảng xác nhận Thoát trận</span>
+            </div>
+            <div class="key-card">
+              <span class="key-badge">Phím F8</span>
+              <span class="key-desc">Đổi nhanh đồ họa rừng: Siêu mượt ⚡ / Cân bằng ⚖️ / Đầy đủ 🌳</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Mục tiêu & Luật chơi -->
+        <div class="guide-section">
+          <h3 class="guide-sec-title">🏰 2. MỤC TIÊU CHIẾN ĐẤU & ĐIỀU KIỆN CHIẾN THẮNG:</h3>
+          <div class="guide-rules-list">
+            <div class="rule-item highlight-rule">
+              <span class="rule-bullet">🏆</span>
+              <div>
+                <b>Hạ gục Cứ Điểm Đối Phương (1000 HP) - THẮNG NGAY LẬP TỨC:</b>
+                <p>Mỗi phe (Lam vs Đỏ) có 1 Cứ Điểm năng lượng phát sáng khổng lồ tại căn cứ. Đội nào phối hợp bắn nổ Cứ Điểm đối phương trước sẽ <b>CHIẾN THẮNG TUYỆT ĐỐI NGAY LẬP TỨC</b>!</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-bullet">🎯</span>
+              <div>
+                <b>Đua Điểm Hạ Gục (15 Kills):</b>
+                <p>Đội đầu tiên tiêu diệt đủ 15 mạng đối phương sẽ giành chiến thắng chung cuộc.</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-bullet">⏱️</span>
+              <div>
+                <b>Khi Hết Giờ (5 Phút):</b>
+                <p>Nếu hết thời gian mà chưa Cứ Điểm nào bị phá hủy, phe có Cứ Điểm còn nhiều % máu hơn sẽ thắng. Nếu máu bằng nhau, phe nhiều mạng hạ gục hơn sẽ thắng.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Cơ chế Đạn & Thức ăn -->
+        <div class="guide-section">
+          <h3 class="guide-sec-title">⚡ 3. CƠ CHẾ ĐẠN & BÃI THỨC ĂN (💩):</h3>
+          <div class="guide-rules-list">
+            <div class="rule-item">
+              <span class="rule-bullet">🟡</span>
+              <div>
+                <b>Băng Đạn Sẵn Sàng (20 Viên):</b>
+                <p>Bạn bắt đầu trận và hồi sinh với đầy đủ <b>20/20 viên đạn</b>. Bắn mỗi phát tiêu hao 1 viên đạn.</p>
+              </div>
+            </div>
+            <div class="rule-item highlight-rule">
+              <span class="rule-bullet">💩</span>
+              <div>
+                <b>Nạp Đạn & Hồi Máu Siêu Tốc:</b>
+                <p>Khi hết đạn hoặc thiếu máu, hãy bay lại gần các bãi thức ăn (cột sáng vàng) trong <b>2 giây</b>. Bạn sẽ được <b>NẠP ĐẦY 20 VIÊN ĐẠN</b> và được <b>HỒI PHỤC NGAY +35 HP</b>!</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-bullet">⏳</span>
+              <div>
+                <b>Vòng Đời Thức Ăn Rừng:</b>
+                <p>Mỗi bãi thức ăn tồn tại 22 giây trước khi biến mất, và sẽ tự động mọc lại sau 12 giây.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Dạng Thức Ăn & Hồi Sinh -->
+        <div class="guide-section">
+          <h3 class="guide-sec-title">💩 4. DẠNG THỨC ĂN TÀNG HÌNH & HỒI SINH TẠI CHỖ:</h3>
+          <div class="guide-rules-list">
+            <div class="rule-item highlight-rule">
+              <span class="rule-bullet">✨</span>
+              <div>
+                <b>Cơ Chế Trốn Thoát 10 Giây Độc Đáo:</b>
+                <p>Khi bị bắn cạn máu, bạn KHÔNG chết ngay mà sẽ biến thành một đống thức ăn (💩) rơi xuống đất và có <b>10 giây</b> để trốn thoát!</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-bullet">🎉</span>
+              <div>
+                <b>Hồi Sinh Làm Ruồi Thần Tốc:</b>
+                <p>Nếu trốn thoát thành công sau 10s: Bạn <b>hồi sinh làm ruồi ngay tại chỗ</b> với <b>70% HP</b> và <b>nạp đầy đủ 20 viên đạn</b> để phản công bất ngờ!</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-bullet">⚠️</span>
+              <div>
+                <b>Cảnh Giác Bị Đối Phương Nạp Đạn:</b>
+                <p>Nếu bị đối phương bay lại gần nạp đạn <b>3 lần</b> trước khi hết 10s: Bạn sẽ bị tiêu diệt hoàn toàn và phải đợi 5 giây để hồi sinh về Căn Cứ.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5: Lên cấp & Bot AI -->
+        <div class="guide-section">
+          <h3 class="guide-sec-title">🌟 5. THĂNG CẤP KỸ NĂNG & BOT AI CÂN BẰNG:</h3>
+          <div class="guide-rules-list">
+            <div class="rule-item">
+              <span class="rule-bullet">🆙</span>
+              <div>
+                <b>Thăng Cấp Kỹ Năng (Upgrades):</b>
+                <p>Ăn thức ăn, hạ gục hoặc hỗ trợ đồng đội giúp bạn tích lũy XP. Mỗi khi lên cấp, bạn được chọn 1 trong 3 nâng cấp ngẫu nhiên: <i>Tăng sát thương đạn, Tăng tốc độ bay, Máu tối đa, Túi đạn mở rộng, Ăn nhanh hơn, Tự hồi phục máu ngoài giao tranh</i>.</p>
+              </div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-bullet">🤖</span>
+              <div>
+                <b>Bot AI Thông Minh Tự Động Thay Thế:</b>
+                <p>Nếu một người chơi thoát trận, hệ thống sẽ tự động đưa Bot AI vào thay thế ngay lập tức để giữ cân bằng quân số 3v3 cho đồng đội!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-footer">
+        <button id="btn-close-guide" class="btn-primary btn-guide-ok">✅ ĐÃ HIỂU - SẴN SÀNG CHIẾN ĐẤU!</button>
       </div>
     </div>
   </div>
