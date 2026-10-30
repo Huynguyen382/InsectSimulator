@@ -24,8 +24,9 @@
 
 ---
 
-### 2. 📱 Ghép Trận Cùng Nền Tảng (Mobile-Mobile & PC-PC)
-- **Tự động nhận diện thiết bị**: Game tự động phát hiện thiết bị di động (màn hình cảm ứng) hoặc PC (chuột + bàn phím). Người chơi cũng có thể chủ động chuyển đổi chế độ ở sảnh chính.
+### 2. 📱 Ghép Trận Cùng Nền Tảng Tự Động (Chống Gian Lận PC - Mobile)
+- **Tự động nhận diện phần cứng thực tế (Anti-Cheat)**: Game tự động phát hiện thiết bị di động (hệ điều hành Android/iOS, màn hình cảm ứng) hoặc PC (chuột + bàn phím). Hệ thống **khóa cứng và không cho phép người chơi tự ý đổi nền tảng thủ công**, triệt tiêu hoàn toàn tình trạng người chơi PC dùng chuột/phím cố tình vào hàng đợi Mobile để bắt nạt người chơi điện thoại.
+- **Xác thực bảo vệ 2 lớp (Client & Server Handshake)**: Server tự động kiểm tra User-Agent kết nối WebSocket. Nếu client kết nối từ trình duyệt Desktop PC, Server cưỡng chế 100% xếp vào hàng đợi PC, bỏ qua mọi can thiệp từ client.
 - **Tách biệt hàng đợi tuyệt đối**: 
   - Hàng đợi **Mobile** chỉ ghép trận với người chơi **Mobile** (+ Bot AI).
   - Hàng đợi **PC** chỉ ghép trận với người chơi **PC** (+ Bot AI).

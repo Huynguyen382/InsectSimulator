@@ -77,10 +77,25 @@ function sanitizeName(name) {
 }
 
 // --- WEBSOCKET REAL-TIME SERVER ---
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   const playerId = 'p_' + Math.random().toString(36).substring(2, 9);
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
+
+  // Server-side Hardware / User-Agent Verification (Strict Anti-Cheat & Anti-Spoofing)
+  const ua = (req && req.headers && req.headers['user-agent']) ? req.headers['user-agent'] : '';
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+  const serverDetectedPlatform = isMobileUA ? 'mobile' : 'pc';
+
+  // Helper: Bắt buộc tuân thủ phần cứng thực tế - PC tuyệt đối không thể mạo danh Mobile
+  const resolvePlatform = (clientClaimed) => {
+    // Nếu server phát hiện User-Agent là PC Desktop (Windows / Mac / Linux / Desktop Browser):
+    // Cưỡng chế 100% về 'pc', ngăn chặn hoàn toàn việc PC chọn Mobile để bắt nạt người chơi điện thoại!
+    if (serverDetectedPlatform === 'pc') {
+      return 'pc';
+    }
+    return clientClaimed === 'mobile' ? 'mobile' : 'pc';
+  };
 
   ws.on('message', (raw) => {
     // Basic anti-DoS: discard payloads larger than 8KB
@@ -126,7 +141,7 @@ wss.on('connection', (ws) => {
         // --- MODE 1: SOLO PRACTICE (1 Human + 5 Bots) ---
         case 'START_SOLO_PRACTICE': {
           const name = sanitizeName(msg.name);
-          const platform = msg.platform === 'mobile' ? 'mobile' : 'pc';
+          const platform = resolvePlatform(msg.platform);
           matchmaker.startSoloPractice({ id: playerId, name, platform, ws });
           break;
         }
@@ -134,7 +149,7 @@ wss.on('connection', (ws) => {
         // --- MODE 2: MATCHMAKING QUEUE (3v3 PvP with auto-fill, separate platform) ---
         case 'JOIN_QUEUE': {
           const name = sanitizeName(msg.name);
-          const platform = msg.platform === 'mobile' ? 'mobile' : 'pc';
+          const platform = resolvePlatform(msg.platform);
           matchmaker.enqueue({ id: playerId, name, platform, ws });
           break;
         }
@@ -159,14 +174,14 @@ wss.on('connection', (ws) => {
         // --- MODE 3: CUSTOM ROOMS ---
         case 'CREATE_CUSTOM_ROOM': {
           const name = sanitizeName(msg.name);
-          const platform = msg.platform === 'mobile' ? 'mobile' : 'pc';
+          const platform = resolvePlatform(msg.platform);
           matchmaker.createCustomRoom({ id: playerId, name, platform, ws });
           break;
         }
 
         case 'JOIN_CUSTOM_ROOM': {
           const name = sanitizeName(msg.name);
-          const platform = msg.platform === 'mobile' ? 'mobile' : 'pc';
+          const platform = resolvePlatform(msg.platform);
           matchmaker.joinCustomRoom(msg.roomCode, { id: playerId, name, platform, ws });
           break;
         }

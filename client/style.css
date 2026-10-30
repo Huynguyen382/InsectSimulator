@@ -2098,67 +2098,52 @@ body, html {
 }
 
 /* ==========================================================================
-   MOBILE PLATFORM SELECTOR (LOBBY)
+   AUTOMATIC HARDWARE PLATFORM DETECTION (ANTI-CHEAT)
    ========================================================================== */
-.platform-card-box {
+.platform-card-box.auto-detect {
   background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.28);
   border-radius: 10px;
   padding: 10px 14px;
   margin-bottom: 14px;
 }
 
-.platform-label-row {
+.platform-info-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.platform-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #38bdf8;
+.platform-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 0.82rem;
   letter-spacing: 0.5px;
+}
+
+.platform-badge-pill.pc {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.25), rgba(14, 165, 233, 0.15));
+  border: 1.5px solid #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.platform-badge-pill.mobile {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(192, 132, 252, 0.15));
+  border: 1.5px solid #c084fc;
+  color: #c084fc;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
 }
 
 .platform-desc {
   font-size: 0.75rem;
   color: #94a3b8;
-}
-
-.platform-btn-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.btn-platform {
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 8px;
-  color: #94a3b8;
-  font-size: 0.82rem;
-  font-weight: 700;
-  padding: 9px 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  outline: none;
-  touch-action: manipulation;
-}
-
-.btn-platform:hover {
-  border-color: rgba(56, 189, 248, 0.6);
-  color: #f8fafc;
-}
-
-.btn-platform.active {
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.4), rgba(14, 165, 233, 0.2));
-  border-color: #38bdf8;
-  color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
 }
 
 .room-plat-badge {

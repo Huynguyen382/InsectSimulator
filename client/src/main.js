@@ -153,38 +153,51 @@ class Game {
   }
 
   detectPlatform() {
-    const saved = localStorage.getItem('insect_platform');
-    if (saved === 'mobile' || saved === 'pc') return saved;
+    try {
+      localStorage.removeItem('insect_platform');
+    } catch (e) {}
+
+    const ua = navigator.userAgent || '';
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
     const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isSmallScreen = window.innerWidth <= 900;
-    return (hasTouch && (isMobileUA || isSmallScreen)) ? 'mobile' : 'pc';
+    const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const isFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+
+    // Thiết bị có chuột thật (pointer: fine) và không phải hệ điều hành di động -> 100% là PC
+    if (isFinePointer && !isMobileUA) {
+      return 'pc';
+    }
+
+    // Chỉ coi là Mobile khi chạy hệ điều hành di động (Android / iOS) hoặc thiết bị thuần cảm ứng
+    return (isMobileUA || (hasTouch && isCoarse && window.innerWidth <= 900)) ? 'mobile' : 'pc';
   }
 
   applyPlatform(platform) {
-    if (platform !== 'mobile' && platform !== 'pc') platform = 'pc';
-    this.platform = platform;
-    localStorage.setItem('insect_platform', platform);
-    this.inputController.setPlatform(platform);
+    this.platform = (platform === 'mobile') ? 'mobile' : 'pc';
+    this.inputController.setPlatform(this.platform);
 
-    const btnPc = document.getElementById('btn-platform-pc');
-    const btnMobile = document.getElementById('btn-platform-mobile');
+    const badge = document.getElementById('auto-platform-badge');
+    const icon = document.getElementById('auto-platform-icon');
+    const name = document.getElementById('auto-platform-name');
     const desc = document.getElementById('platform-desc-text');
 
-    if (btnPc && btnMobile) {
-      btnPc.classList.toggle('active', platform === 'pc');
-      btnMobile.classList.toggle('active', platform === 'mobile');
-    }
-
-    if (desc) {
-      desc.innerText = platform === 'mobile'
-        ? '📱 Ghép trận: CHỈ GHÉP VỚI MOBILE (Cần gạt ảo & Cảm ứng)'
-        : '💻 Ghép trận: CHỈ GHÉP VỚI PC (Chuột & Bàn phím WASD)';
+    if (badge && icon && name) {
+      if (this.platform === 'mobile') {
+        badge.className = 'platform-badge-pill mobile';
+        icon.innerText = '📱';
+        name.innerText = 'THIẾT BỊ DI ĐỘNG (MOBILE)';
+        if (desc) desc.innerText = '🔒 Hệ thống tự động ghép với người chơi Mobile (Cần gạt ảo & Cảm ứng)';
+      } else {
+        badge.className = 'platform-badge-pill pc';
+        icon.innerText = '💻';
+        name.innerText = 'MÁY TÍNH (PC)';
+        if (desc) desc.innerText = '🔒 Hệ thống tự động ghép với người chơi PC (Chuột & Bàn phím)';
+      }
     }
 
     const mobileLayer = document.getElementById('mobile-controls');
     if (mobileLayer) {
-      if (this.currentRoomId && platform === 'mobile') {
+      if (this.currentRoomId && this.platform === 'mobile') {
         mobileLayer.classList.remove('hidden');
       } else {
         mobileLayer.classList.add('hidden');
@@ -194,23 +207,6 @@ class Game {
 
   initPlatformController() {
     this.applyPlatform(this.platform);
-
-    const btnPc = document.getElementById('btn-platform-pc');
-    const btnMobile = document.getElementById('btn-platform-mobile');
-
-    if (btnPc) {
-      btnPc.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.applyPlatform('pc');
-      });
-    }
-
-    if (btnMobile) {
-      btnMobile.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.applyPlatform('mobile');
-      });
-    }
   }
 
   initFpsTargetController() {

@@ -125,19 +125,14 @@
         <input type="text" id="player-name" placeholder="Ruồi Siêu Tốc" maxlength="15" value="FlyPilot">
       </div>
 
-      <!-- Platform Selection (Mobile vs PC Separate Matchmaking) -->
-      <div class="platform-card-box">
-        <div class="platform-label-row">
-          <span class="platform-title">📱 NỀN TẢNG GHÉP TRẬN:</span>
-          <span id="platform-desc-text" class="platform-desc">Tự động nhận diện thiết bị của bạn</span>
-        </div>
-        <div class="platform-btn-group" id="lobby-platform-group">
-          <button type="button" class="btn-platform" id="btn-platform-pc" data-platform="pc" title="Chế độ Chuột & Bàn phím (Chỉ ghép với người chơi PC)">
-            💻 Máy tính (PC)
-          </button>
-          <button type="button" class="btn-platform" id="btn-platform-mobile" data-platform="mobile" title="Chế độ Cảm ứng Touch (Chỉ ghép với người chơi Mobile)">
-            📱 Điện thoại (Mobile)
-          </button>
+      <!-- Automatic Platform Detection Badge (Cố định theo phần cứng thực tế - Chống gian lận) -->
+      <div class="platform-card-box auto-detect">
+        <div class="platform-info-row">
+          <div class="platform-badge-pill" id="auto-platform-badge">
+            <span id="auto-platform-icon">💻</span>
+            <span id="auto-platform-name">MÁY TÍNH (PC)</span>
+          </div>
+          <span id="platform-desc-text" class="platform-desc">🔒 Tự động phân loại ghép trận theo thiết bị thực tế</span>
         </div>
       </div>
 
